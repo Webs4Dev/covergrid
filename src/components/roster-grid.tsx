@@ -39,7 +39,7 @@ function DateHeader({ view, first, dayHref }: { view: RosterViewData; first: str
         <th scope="col" className={`${stickyName} font-medium text-muted`}>{first}</th>
         {view.dates.map((date) => (
           <th key={date} scope="col" className={`${cell} font-medium ${[0, 6].includes(weekdayOf(date)) ? "bg-paper" : ""}`}>
-            <Link href={dayHref(date)} className="block hover:text-accent" aria-label={`See ${date}`}>
+            <Link href={dayHref(date)} prefetch={false} className="block hover:text-accent" aria-label={`See ${date}`}>
               <span className="block text-muted">{LETTERS[weekdayOf(date)]}</span>
               {Number(date.slice(8))}
             </Link>
@@ -77,7 +77,7 @@ export function PeopleGrid({ view, caption, groups, dayHref, employeeHref }: Gri
             {group.people.map(({ employee, note }) => (
               <tr key={employee.id} className="border-b border-line">
                 <th scope="row" className={`${stickyName} text-sm`}>
-                  <Link href={employeeHref(employee.id)} className="hover:text-accent hover:underline">{employee.name}</Link>
+                  <Link href={employeeHref(employee.id)} prefetch={false} className="hover:text-accent hover:underline">{employee.name}</Link>
                   {note && <span className="ml-1 text-xs text-muted">{note}</span>}
                 </th>
                 {view.dates.map((date) => {
@@ -95,8 +95,10 @@ export function PeopleGrid({ view, caption, groups, dayHref, employeeHref }: Gri
                   ].join(", ");
                   return (
                     <td key={date} className={`${cell} ${style}`} title={detail}>
-                      <span aria-hidden>{code}</span>
-                      <span className="sr-only">{detail}</span>
+                      <Link href={`/roster/edit?month=${date.slice(0, 7)}&date=${date}&employee=${employee.id}`} prefetch={false} className="block">
+                        <span aria-hidden>{code}</span>
+                        <span className="sr-only">{detail}</span>
+                      </Link>
                     </td>
                   );
                 })}

@@ -163,7 +163,7 @@ export const entities = {
     fields: [
       { name: "employeeId", label: "Employee", type: "ref", ref: "employees", required: true },
       { name: "kind", label: "Type", type: "choice", options: choices("leave", "comp_off", "unavailable"), required: true },
-      { name: "status", label: "Status", type: "choice", options: choices("requested", "approved", "rejected", "cancelled"), required: true },
+      { name: "status", label: "Status", type: "choice", options: choices("requested", "approved", "rejected", "cancelled"), required: true, help: "Use Review in the list to see the effect before approving." },
       { name: "startDate", label: "From", type: "date", required: true },
       { name: "endDate", label: "To", type: "date", required: true },
       { name: "reason", label: "Reason", type: "text", max: 200 },

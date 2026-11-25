@@ -153,7 +153,11 @@ export function checkRoster(input: CheckInput, days: RosterDay[]): Issue[] {
       if (working) {
         const why = cannotWork(e.id, date);
         if (why.length > 0) add("working_when_away", `${e.name} is set to work on a day they cannot.`, { ...at, reasons: why });
-      } else if (away.length > 0 && !away.some((t) => t.kind === day.status)) {
+      } else if (
+        away.length > 0 && !away.some((t) => t.kind === day.status) &&
+        // A day off that falls inside leave simply stays a day off.
+        !((day.status === "weekly_off" || day.status === "holiday") && away.every((t) => t.kind !== "comp_off"))
+      ) {
         add("status_mismatch", `${e.name} is shown ${STATUS_TEXT[day.status]}, but the approved entry says ${STATUS_TEXT[away[0].kind]}.`, at);
       } else if ((day.status === "leave" || day.status === "comp_off") && away.length === 0) {
         add("status_mismatch", `${e.name} is shown ${STATUS_TEXT[day.status]} without an approved entry.`, at);

@@ -53,4 +53,4 @@ export type RosterInput = {
 };
 
 export type Duty = { serviceId: number; isBackup: boolean };
-export type RosterDay = { employeeId: number; date: string; status: DayStatus; duties: Duty[] };
+export type RosterDay = { employeeId: number; date: string; status: DayStatus; duties: Duty[]; locked?: boolean };

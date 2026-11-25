@@ -117,6 +117,9 @@ export default async function ManagePage({ params, searchParams }: PageProps<"/m
                 ))}
                 <td className="px-3 py-1.5">
                   <div className="flex items-start justify-end gap-2">
+                    {entity === "time-off" && ["requested", "approved"].includes(String(row.values.status)) && (
+                      <Link href={`/roster/leave?id=${row.key}`} className="btn btn-primary">{row.values.status === "requested" ? "Review" : "Cancel"}</Link>
+                    )}
                     <Link href={`${base}?edit=${row.key}`} className="btn">Edit</Link>
                     <ConfirmButton
                       label="Delete"

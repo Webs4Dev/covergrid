@@ -23,7 +23,7 @@ export function ProblemList({ issues, href, brandOfService }: Props) {
             <p className="text-sm font-medium">
               <span className={mustFix ? "text-danger" : "text-warn"}>{mustFix ? "Must fix" : "Preference"}</span>
               {issue.date && <span className="text-muted">, {formatDate(issue.date)}</span>}
-              <span className="block">{issue.message}</span>
+              <span className="block">{readable(issue.message)}</span>
             </p>
             {issue.reasons.length > 0 && (
               <ul className="mt-1 list-disc pl-5 text-sm text-muted">
@@ -31,6 +31,9 @@ export function ProblemList({ issues, href, brandOfService }: Props) {
               </ul>
             )}
             <p className="mt-2 flex flex-wrap gap-3 text-sm">
+              {(issue.code === "no_cover" || issue.code === "short_staffed") && (
+                <Link className="font-medium text-accent underline" href={`/roster/fix?month=${issue.date!.slice(0, 7)}&service=${issue.serviceIds[0]}&date=${issue.date}`}>Find a fix</Link>
+              )}
               {issue.date && <Link className="text-accent underline" href={href({ view: "day", date: issue.date })}>See that day</Link>}
               {issue.employeeIds.length === 1 && (
                 <Link className="text-accent underline" href={href({ view: "employee", id: issue.employeeIds[0] })}>See the person</Link>
