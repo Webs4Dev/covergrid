@@ -19,7 +19,7 @@ export default async function RepairPage({ searchParams }: PageProps<"/roster/re
   const plan = describeChange(change.before, change.after);
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="mx-auto max-w-4xl space-y-4 p-4">
       <div>
         <Link href={`/roster?month=${month}`} className="text-sm text-accent underline">Back to the roster</Link>
         <h1 className="mt-1 text-2xl font-semibold">Repair {monthLabel(month)}</h1>

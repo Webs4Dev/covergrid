@@ -23,7 +23,7 @@ export default async function FixPage({ searchParams }: PageProps<"/roster/fix">
   const fixes = issue ? suggestFixes(input, days, target, date) : [];
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="mx-auto max-w-4xl space-y-4 p-4">
       <div>
         <Link href={`/roster?month=${month}&view=problems`} className="text-sm text-accent underline">Back to problems</Link>
         <h1 className="mt-1 text-2xl font-semibold">Find a fix</h1>

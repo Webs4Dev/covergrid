@@ -38,7 +38,7 @@ export default async function EditDayPage({ searchParams }: PageProps<"/roster/e
   const shownDuties = asked ? picked : current.duties.map((d) => d.serviceId);
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-4 p-4">
       <div>
         <Link href={`/roster?month=${month}&view=employee&id=${employeeId}`} className="text-sm text-accent underline">Back to {employee.name}</Link>
         <h1 className="mt-1 text-2xl font-semibold">{employee.name}, {showDate(date)}</h1>

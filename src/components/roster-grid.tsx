@@ -4,7 +4,7 @@ import type { DayStatus, Employee, Service } from "@/engine/types";
 import type { RosterViewData } from "@/lib/roster-view";
 
 export const STATUS: Record<DayStatus, { code: string; label: string; style: string }> = {
-  working: { code: "W", label: "Working", style: "" },
+  working: { code: "W", label: "Working", style: "bg-accent-soft" },
   weekly_off: { code: "O", label: "Weekly off", style: "bg-line/60" },
   holiday: { code: "H", label: "Public holiday", style: "bg-line/60" },
   leave: { code: "L", label: "Leave", style: "bg-ink text-white" },
@@ -36,9 +36,9 @@ function DateHeader({ view, first, dayHref }: { view: RosterViewData; first: str
   return (
     <thead>
       <tr className="border-b border-line">
-        <th scope="col" className={`${stickyName} font-medium text-muted`}>{first}</th>
+        <th scope="col" className={`${stickyName} top-0 z-30 font-medium text-muted`}>{first}</th>
         {view.dates.map((date) => (
-          <th key={date} scope="col" className={`${cell} font-medium ${[0, 6].includes(weekdayOf(date)) ? "bg-paper" : ""}`}>
+          <th key={date} scope="col" className={`${cell} sticky top-0 z-20 font-medium shadow-[inset_0_-1px_0_var(--color-line)] ${[0, 6].includes(weekdayOf(date)) ? "bg-paper" : "bg-surface"}`}>
             <Link href={dayHref(date)} prefetch={false} className="block hover:text-accent" aria-label={`See ${date}`}>
               <span className="block text-muted">{LETTERS[weekdayOf(date)]}</span>
               {Number(date.slice(8))}
@@ -56,13 +56,14 @@ type GridProps = {
   dayHref: (date: string) => string;
   groups: { title: string | null; people: { employee: Employee; note?: string }[] }[];
   employeeHref: (id: number) => string;
+  fill?: boolean; // take the rest of the screen and scroll inside
 };
 
 /** People down the side, days across the top. */
-export function PeopleGrid({ view, caption, groups, dayHref, employeeHref }: GridProps) {
+export function PeopleGrid({ view, caption, groups, dayHref, employeeHref, fill }: GridProps) {
   return (
-    <div className="panel relative overflow-x-auto">
-      <table className="border-collapse tabular-nums">
+    <div className={`panel relative overflow-auto ${fill ? "lg:min-h-48 lg:flex-1" : ""}`}>
+      <table className="w-full border-collapse tabular-nums">
         <caption className="sr-only">{caption}</caption>
         <DateHeader view={view} first="Employee" dayHref={dayHref} />
         {groups.map((group) => (
@@ -75,7 +76,7 @@ export function PeopleGrid({ view, caption, groups, dayHref, employeeHref }: Gri
               </tr>
             )}
             {group.people.map(({ employee, note }) => (
-              <tr key={employee.id} className="border-b border-line">
+              <tr key={employee.id} className="border-b border-line hover:brightness-95">
                 <th scope="row" className={`${stickyName} text-sm`}>
                   <Link href={employeeHref(employee.id)} prefetch={false} className="hover:text-accent hover:underline">{employee.name}</Link>
                   {note && <span className="ml-1 text-xs text-muted">{note}</span>}
@@ -114,8 +115,8 @@ export function PeopleGrid({ view, caption, groups, dayHref, employeeHref }: Gri
 /** Services down the side: people at work against people needed, each day. */
 export function CoverageGrid({ view, caption, services, dayHref }: { view: RosterViewData; caption: string; services: Service[]; dayHref: (date: string) => string }) {
   return (
-    <div className="panel relative overflow-x-auto">
-      <table className="border-collapse tabular-nums">
+    <div className="panel relative shrink-0 overflow-x-auto">
+      <table className="w-full border-collapse tabular-nums">
         <caption className="sr-only">{caption}</caption>
         <DateHeader view={view} first="People at work / needed" dayHref={dayHref} />
         <tbody>

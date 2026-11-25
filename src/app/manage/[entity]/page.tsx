@@ -66,14 +66,14 @@ export default async function ManagePage({ params, searchParams }: PageProps<"/m
   const done = typeof query.done === "string" ? DONE[query.done] : undefined;
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold">{definition.title}</h1>
+    <div className="flex flex-col p-4 lg:h-full lg:min-h-0">
+      <h1 className="text-xl font-bold">{definition.title}</h1>
       <p className="mt-1 text-sm text-muted">{definition.about}</p>
       {done && !editing && (
         <p role="status" className="mt-4 rounded-md bg-accent-soft px-3 py-2 text-sm">{done}</p>
       )}
 
-      <details className="panel mt-6 p-4" open={editing !== null} key={editing?.key ?? "new"}>
+      <details className="panel mt-3 shrink-0 p-3" open={editing !== null} key={editing?.key ?? "new"}>
         <summary className="cursor-pointer font-semibold">
           {editing ? `Edit ${definition.one}` : `Add ${definition.one}`}
         </summary>
@@ -89,7 +89,7 @@ export default async function ManagePage({ params, searchParams }: PageProps<"/m
         </div>
       </details>
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <form action={base} className="flex gap-2">
           <input type="search" name="q" defaultValue={search} placeholder="Search" aria-label={`Search ${definition.title}`} className="control" />
           <button className="btn">Search</button>
@@ -99,14 +99,14 @@ export default async function ManagePage({ params, searchParams }: PageProps<"/m
         </p>
       </div>
 
-      <div className="panel relative mt-3 overflow-x-auto">
+      <div className="panel relative mt-3 overflow-auto lg:min-h-64 lg:flex-1">
         <table className="w-full text-left text-sm tabular-nums">
           <thead>
             <tr className="border-b border-line text-muted">
               {columns.map((f) => (
-                <th key={f.name} scope="col" className="px-3 py-2 font-medium whitespace-nowrap">{f.label}</th>
+                <th key={f.name} scope="col" className="sticky top-0 z-10 bg-surface px-3 py-2 font-medium whitespace-nowrap shadow-[inset_0_-1px_0_var(--color-line)]">{f.label}</th>
               ))}
-              <th scope="col" className="px-3 py-2"><span className="sr-only">Actions</span></th>
+              <th scope="col" className="sticky top-0 z-10 bg-surface px-3 py-2 shadow-[inset_0_-1px_0_var(--color-line)]"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody>

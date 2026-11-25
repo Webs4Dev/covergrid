@@ -32,7 +32,7 @@ export default async function LeavePage({ searchParams }: PageProps<"/roster/lea
   const range = entry.startDate === entry.endDate ? showDate(entry.startDate) : `${showDate(entry.startDate)} to ${showDate(entry.endDate)}`;
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-4 p-4">
       <div>
         <Link href="/manage/time-off" className="text-sm text-accent underline">Back to time off</Link>
         <h1 className="mt-1 text-2xl font-semibold">{person?.name}: {kind.toLowerCase()}, {range}</h1>
