@@ -23,7 +23,11 @@ The side menu holds every kind of data (people, brands, assignments, rules, time
 Add, edit and delete from there; no code changes are needed.
 
 On **Roster**, choose a month and generate it, then view it by company, pod, brand,
-process or employee. Select a date to see who is working that day. There is **no login**: this is
+process or employee. Select a date to see who is working that day.
+
+**Problems** lists everything wrong with the roster and why. A roster with must-fix
+problems can only be published with a written reason. Publishing gives each person who
+works a public holiday one comp-off; returning to draft removes those again. There is **no login**: this is
 a demo with fictional data, so anyone can edit it, and **Reset sample data** on the Overview
 page restores it. Do not enter real personal data.
 

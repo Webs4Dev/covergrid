@@ -6,11 +6,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import { deleteRow, saveRow } from "@/db/admin";
-import { loadInput, loadRoster, saveRoster } from "@/db/roster";
+import { loadInput, loadRoster, markDraft, markPublished, saveRoster } from "@/db/roster";
+import { checkRoster } from "@/engine/check";
 import { generateRoster } from "@/engine/generate";
 import { isEntityName } from "@/lib/entities";
 import { isMonth } from "@/lib/months";
 import { parseForm, type Errors } from "@/lib/parse";
+import { holidayCredits, publishProblem } from "@/lib/publish";
 import { resetToSampleData } from "@/seed/apply";
 
 export type FormState = { message?: string; errors?: Errors; values?: Record<string, string[]> };
@@ -59,6 +61,41 @@ export async function generate(month: string): Promise<FormState> {
   } catch {
     console.error("Roster generation failed.");
     return { message: "The roster could not be generated. Nothing was changed." };
+  }
+  revalidatePath("/", "layout");
+  redirect(`/roster?month=${month}`);
+}
+
+/** The roster is checked again here: what the screen showed may be out of date. */
+export async function publish(month: string, _: FormState, form: FormData): Promise<FormState> {
+  if (!isMonth(month)) return { message: "Choose a month." };
+  const reason = String(form.get("reason") ?? "").trim();
+  try {
+    const [input, roster] = await Promise.all([loadInput(month), loadRoster(month)]);
+    if (!roster) return { message: "Generate the roster first." };
+    if (roster.status === "published") return { message: "This month is already published." };
+    const issues = checkRoster(input, roster.days);
+    const problem = publishProblem(issues, reason);
+    if (problem) return { message: problem, values: { reason: [reason] } };
+    const needsReason = issues.some((i) => i.severity === "must_fix");
+    await markPublished(roster.id, needsReason ? reason : null, holidayCredits(input, roster.days));
+  } catch {
+    console.error("Publishing failed.");
+    return { message: "The roster could not be published. Nothing was changed." };
+  }
+  revalidatePath("/", "layout");
+  redirect(`/roster?month=${month}`);
+}
+
+export async function unpublish(month: string): Promise<FormState> {
+  if (!isMonth(month)) return { message: "Choose a month." };
+  try {
+    const roster = await loadRoster(month);
+    if (roster?.status !== "published") return { message: "This month is not published." };
+    await markDraft(roster.id, month);
+  } catch {
+    console.error("Unpublishing failed.");
+    return { message: "Could not return it to draft. Nothing was changed." };
   }
   revalidatePath("/", "layout");
   redirect(`/roster?month=${month}`);

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { generate } from "@/app/actions";
+import { generate, publish, unpublish } from "@/app/actions";
 import { ConfirmButton } from "@/components/confirm-button";
 import { GenerateButton } from "@/components/generate-button";
+import { ProblemList } from "@/components/problem-list";
+import { PublishForm } from "@/components/publish-form";
 import { DayDetail, EmployeeCalendar } from "@/components/roster-detail";
 import { CoverageGrid, Legend, PeopleGrid } from "@/components/roster-grid";
-import { loadInput, loadRoster } from "@/db/roster";
+import { loadChanges, loadInput, loadRoster } from "@/db/roster";
 import { canPublish, checkRoster } from "@/engine/check";
 import type { Employee } from "@/engine/types";
 import { isMonth, monthChoices, monthLabel, nextMonth } from "@/lib/months";
@@ -14,9 +16,10 @@ import { createView } from "@/lib/roster-view";
 // Generating a month takes a few seconds on a small server.
 export const maxDuration = 60;
 
-const VIEWS = { company: "Company", pod: "Pod", brand: "Brand", process: "Process", employee: "Employee" } as const;
+const VIEWS = { company: "Company", pod: "Pod", brand: "Brand", process: "Process", employee: "Employee", problems: "Problems" } as const;
 type View = keyof typeof VIEWS | "day";
 
+const when = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
 const text = (value: string | string[] | undefined) => (typeof value === "string" ? value : "");
 
 export default async function RosterPage({ searchParams }: PageProps<"/roster">) {
@@ -60,6 +63,7 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
     );
   }
 
+  const changes = await loadChanges(roster.id);
   const data = createView(input, roster.days);
   const issues = checkRoster(input, roster.days);
   const mustFix = issues.filter((i) => i.severity === "must_fix").length;
@@ -88,6 +92,9 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
             .filter((g) => g.people.length > 0)}
         />
       );
+    }
+    if (view === "problems") {
+      return <ProblemList issues={issues} href={href} brandOfService={new Map(input.services.map((s) => [s.id, s.brandId]))} />;
     }
     if (view === "day") {
       const date = data.dates.includes(text(query.date)) ? text(query.date) : data.dates[0];
@@ -149,20 +156,38 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
       {header}
 
       <div className="panel mt-4 flex flex-wrap items-center justify-between gap-3 p-3">
-        <p className="text-sm">
-          <strong>{monthLabel(month)}</strong>, {roster.status}.{" "}
-          {canPublish(issues) ? (
-            <span>No must-fix problems.</span>
-          ) : (
-            <span className="font-medium text-danger">{mustFix} must-fix {mustFix === 1 ? "problem" : "problems"}.</span>
-          )}{" "}
-          <span className="text-muted">{issues.length - mustFix} preference notes.</span>
-        </p>
-        {roster.status === "draft" && (
+        <div className="text-sm">
+          <p>
+            <strong>{monthLabel(month)}</strong>, {roster.status}
+            {roster.publishedAt && ` on ${when.format(roster.publishedAt)}`}.{" "}
+            {canPublish(issues) ? (
+              <span>No must-fix problems.</span>
+            ) : (
+              <Link href={href({ view: "problems" })} className="font-medium text-danger underline">
+                {mustFix} must-fix {mustFix === 1 ? "problem" : "problems"}.
+              </Link>
+            )}{" "}
+            <span className="text-muted">{issues.length - mustFix} preference notes.</span>
+          </p>
+          {roster.overrideReason && <p className="mt-1 text-muted">Published anyway because: {roster.overrideReason}</p>}
+          {roster.status === "published" && mustFix > 0 && !roster.overrideReason && (
+            <p role="alert" className="mt-1 font-medium text-danger">Something changed after publishing. Check the problems.</p>
+          )}
+        </div>
+        {roster.status === "draft" ? (
+          <div className="flex flex-wrap items-start gap-2">
+          <Link href={href({ view: "problems" })} className="btn btn-primary">Review and publish</Link>
           <ConfirmButton
             label="Generate again" confirmLabel="Yes, replace it"
             note="Builds the month again from the current data and replaces this draft."
             action={generate.bind(null, month)}
+          />
+          </div>
+        ) : (
+          <ConfirmButton
+            label="Return to draft" confirmLabel="Yes, unpublish"
+            note="The roster can be changed again. Comp-offs earned by publishing it are removed."
+            action={unpublish.bind(null, month)}
           />
         )}
       </div>
@@ -173,7 +198,7 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
             key={key} href={`/roster?month=${month}&view=${key}`} aria-current={view === key ? "page" : undefined}
             className="btn aria-[current=page]:border-accent aria-[current=page]:bg-accent aria-[current=page]:text-white"
           >
-            {label}
+            {key === "problems" ? `${label} (${issues.length})` : label}
           </Link>
         ))}
       </nav>
@@ -193,9 +218,22 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
       )}
 
       <div className="mt-4 space-y-4">
-        {view !== "day" && view !== "employee" && <Legend />}
+        {!["day", "employee", "problems"].includes(view) && <Legend />}
         {content()}
-        {view !== "day" && <p className="text-xs text-muted">Select a date number to see who is working that day.</p>}
+        {!["day", "problems"].includes(view) && <p className="text-xs text-muted">Select a date number to see who is working that day.</p>}
+        {view === "problems" && roster.status === "draft" && (
+          <div className="max-w-3xl">
+            <PublishForm action={publish.bind(null, month)} mustFix={mustFix} />
+          </div>
+        )}
+        {view === "problems" && changes.length > 0 && (
+          <section className="max-w-3xl">
+            <h2 className="mb-1 font-semibold">History</h2>
+            <ul className="text-sm text-muted">
+              {changes.map((c) => <li key={c.id}>{when.format(c.createdAt)}: {c.summary}</li>)}
+            </ul>
+          </section>
+        )}
       </div>
     </div>
   );
