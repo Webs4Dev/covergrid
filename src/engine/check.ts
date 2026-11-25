@@ -62,6 +62,35 @@ const PREFERENCE_CODES = new Set<IssueCode>([
 
 export const canPublish = (issues: Issue[]) => !issues.some((i) => i.severity === "must_fix");
 
+/**
+ * When someone cannot work, and whether a roster day really covers a service.
+ * Shared with the roster screens so they always agree with the checker.
+ */
+export function coverRules(input: CheckInput) {
+  const employees = new Map(input.employees.map((e) => [e.id, e]));
+  const assigned = new Set(input.assignments.map((a) => `${a.employeeId}|${a.serviceId}`));
+
+  /** Time off or a weekday that makes working impossible, whatever the roster says. */
+  const cannotWork = (employeeId: number, date: string) => {
+    const e = employees.get(employeeId);
+    if (!e) return [];
+    const weekday = weekdayOf(date);
+    const why = input.timeOff
+      .filter((t) => t.employeeId === employeeId && t.status === "approved" && t.startDate <= date && date <= t.endDate)
+      .map((t) => `${e.name} has approved time off (${STATUS_TEXT[t.kind]}).`);
+    if (e.fixedOffDays.includes(weekday)) why.push(`${e.name} always has ${WEEKDAYS[weekday]} off.`);
+    if (e.unavailableDays.includes(weekday)) why.push(`${e.name} cannot work on ${WEEKDAYS[weekday]}s.`);
+    return why;
+  };
+
+  // Someone who cannot work is never cover, even if the roster has not caught up.
+  const counts = (day: RosterDay, serviceId: number) =>
+    day.status === "working" && employees.has(day.employeeId) && cannotWork(day.employeeId, day.date).length === 0 &&
+    assigned.has(`${day.employeeId}|${serviceId}`) && day.duties.some((d) => d.serviceId === serviceId);
+
+  return { cannotWork, counts };
+}
+
 export function checkRoster(input: CheckInput, days: RosterDay[]): Issue[] {
   const issues: Issue[] = [];
   const add = (
@@ -107,15 +136,7 @@ export function checkRoster(input: CheckInput, days: RosterDay[]): Issue[] {
       (t) => t.employeeId === employeeId && t.status === "approved" && t.startDate <= date && date <= t.endDate,
     );
 
-  /** Time off or a weekday that makes working impossible, whatever the roster says. */
-  const cannotWork = (employeeId: number, date: string) => {
-    const e = employees.get(employeeId)!;
-    const weekday = weekdayOf(date);
-    const why = timeOffOn(employeeId, date).map((t) => `${e.name} has approved time off (${STATUS_TEXT[t.kind]}).`);
-    if (e.fixedOffDays.includes(weekday)) why.push(`${e.name} always has ${WEEKDAYS[weekday]} off.`);
-    if (e.unavailableDays.includes(weekday)) why.push(`${e.name} cannot work on ${WEEKDAYS[weekday]}s.`);
-    return why;
-  };
+  const { cannotWork, counts } = coverRules(input);
 
   // ---------- each person, each day ----------
   for (const e of input.employees) {
@@ -172,10 +193,6 @@ export function checkRoster(input: CheckInput, days: RosterDay[]): Issue[] {
   }
 
   // ---------- each service, each day ----------
-  // Someone who cannot work is never cover, even if the roster has not caught up.
-  const counts = (day: RosterDay, s: Service) =>
-    day.status === "working" && employees.has(day.employeeId) && cannotWork(day.employeeId, day.date).length === 0 && assigned.has(`${day.employeeId}|${s.id}`) &&
-    day.duties.some((d) => d.serviceId === s.id);
   const onDate = new Map<string, RosterDay[]>();
   for (const day of byDay.values()) onDate.set(day.date, [...(onDate.get(day.date) ?? []), day]);
 
@@ -183,7 +200,7 @@ export function checkRoster(input: CheckInput, days: RosterDay[]): Issue[] {
     const short: Service[] = [];
     for (const s of input.services) {
       const need = demand(s, date);
-      const have = (onDate.get(date) ?? []).filter((d) => counts(d, s)).length;
+      const have = (onDate.get(date) ?? []).filter((d) => counts(d, s.id)).length;
       if (have >= need) continue;
       short.push(s);
       const able = input.assignments.filter((a) => a.serviceId === s.id && employees.has(a.employeeId));
@@ -221,7 +238,7 @@ export function checkRoster(input: CheckInput, days: RosterDay[]): Issue[] {
     const e = employees.get(employeeId)!;
     const day = byDay.get(`${employeeId}|${date}`);
     if (!day) return `${e.name} has no plan for this day.`;
-    if (counts(day, s)) return null;
+    if (counts(day, s.id)) return null;
     if (day.status !== "working") return `${e.name} is ${STATUS_TEXT[day.status]}.`;
     const blocked = cannotWork(employeeId, date);
     if (blocked.length > 0) return blocked[0];

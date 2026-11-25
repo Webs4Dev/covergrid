@@ -6,7 +6,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import { deleteRow, saveRow } from "@/db/admin";
+import { loadInput, loadRoster, saveRoster } from "@/db/roster";
+import { generateRoster } from "@/engine/generate";
 import { isEntityName } from "@/lib/entities";
+import { isMonth } from "@/lib/months";
 import { parseForm, type Errors } from "@/lib/parse";
 import { resetToSampleData } from "@/seed/apply";
 
@@ -44,4 +47,19 @@ export async function reset(): Promise<FormState> {
   }
   revalidatePath("/", "layout");
   redirect("/?done=reset");
+}
+
+export async function generate(month: string): Promise<FormState> {
+  if (!isMonth(month)) return { message: "Choose a month." };
+  try {
+    if ((await loadRoster(month))?.status === "published") {
+      return { message: "This month is already published, so it cannot be replaced." };
+    }
+    await saveRoster(month, generateRoster(await loadInput(month)).days);
+  } catch {
+    console.error("Roster generation failed.");
+    return { message: "The roster could not be generated. Nothing was changed." };
+  }
+  revalidatePath("/", "layout");
+  redirect(`/roster?month=${month}`);
 }

@@ -20,7 +20,10 @@ Requires Node.js 22.12 or newer and a PostgreSQL database on [Neon](https://neon
 ## Using it
 
 The side menu holds every kind of data (people, brands, assignments, rules, time off).
-Add, edit and delete from there; no code changes are needed. There is **no login**: this is
+Add, edit and delete from there; no code changes are needed.
+
+On **Roster**, choose a month and generate it, then view it by company, pod, brand,
+process or employee. Select a date to see who is working that day. There is **no login**: this is
 a demo with fictional data, so anyone can edit it, and **Reset sample data** on the Overview
 page restores it. Do not enter real personal data.
 

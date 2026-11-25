@@ -136,6 +136,11 @@ export function generateRoster(input: RosterInput): { days: RosterDay[]; exact: 
     return cost + MISSED_PREFERENCE * misses ** 2 + NO_WEEKEND_OFF * weekendless ** 2;
   }
 
+  const workOf = new Map<number, Set<number>>();
+  for (const a of assignments) workOf.set(a.employeeId, (workOf.get(a.employeeId) ?? new Set()).add(a.serviceId));
+  const shareWork = (x: Plan, y: Plan) =>
+    [...(workOf.get(x.employee.id) ?? [])].some((id) => workOf.get(y.employee.id)?.has(id));
+
   // ----- improve each group until nothing helps -----
   groups.forEach((group, groupIndex) => {
     const members = group.employees.map((e) => plans.get(e.id)!);
@@ -168,6 +173,8 @@ export function generateRoster(input: RosterInput): { days: RosterDay[]; exact: 
       for (let w = 0; w < weekCount; w++) {
         for (let a = 0; a < members.length; a++) {
           for (let b = a + 1; b < members.length; b++) {
+            // Only people who share some work can cover for each other.
+            if (!shareWork(members[a], members[b])) continue;
             if (tryMoves(w, [members[a], members[b]])) improved = true;
           }
         }
@@ -178,7 +185,14 @@ export function generateRoster(input: RosterInput): { days: RosterDay[]; exact: 
       const start = who.map((p) => p.choice[w]);
       let bestCost = weekCost(w, who);
       let best = start;
-      for (const combo of product(who.map((p) => p.weeks[w].options.length))) {
+      // Together, each person moves at most one day at a time. Trying every
+      // combination grows far too fast with two or more weekly offs.
+      const choices = who.map((p, i) => {
+        const options = p.weeks[w].options;
+        const near = (o: string[]) => o.filter((d) => !options[start[i]].includes(d)).length <= 1;
+        return options.map((_, index) => index).filter((index) => who.length === 1 || near(options[index]));
+      });
+      for (const combo of product(choices)) {
         who.forEach((p, i) => (p.choice[w] = combo[i]));
         const cost = weekCost(w, who);
         if (cost < bestCost - 1e-9) [bestCost, best] = [cost, combo];
@@ -257,11 +271,8 @@ function combinations<T>(items: T[], size: number): T[][] {
   return items.flatMap((item, i) => combinations(items.slice(i + 1), size - 1).map((rest) => [item, ...rest]));
 }
 
-function product(sizes: number[]): number[][] {
-  return sizes.reduce<number[][]>(
-    (all, size) => all.flatMap((head) => Array.from({ length: size }, (_, i) => [...head, i])),
-    [[]],
-  );
+function product(lists: number[][]): number[][] {
+  return lists.reduce<number[][]>((all, list) => all.flatMap((head) => list.map((x) => [...head, x])), [[]]);
 }
 
 function bestIndex(costs: number[]) {
