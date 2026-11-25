@@ -56,6 +56,7 @@ export function buildTasks(args: {
   roster: { status: "draft" | "published" } | null;
   issues: Issue[];
   outdated: number;
+  afterRepair?: Issue[]; // problems left once the roster is repaired
   requests: Request[];
   format: (date: string) => string;
 }): Task[] {
@@ -67,7 +68,12 @@ export function buildTasks(args: {
   if (outdated > 0) {
     tasks.push({ key: "repair", kind: "problem", title: "Update the roster", detail: `Data changed: ${outdated} ${outdated === 1 ? "day needs" : "days need"} an update.`, href: `/roster/repair?month=${month}`, action: "Review" });
   }
-  for (const [i, issue] of issues.filter((x) => x.severity === "must_fix").entries()) {
+  // What a repair would fix is covered by the one repair task above, so only the
+  // problems that need a decision are listed one by one.
+  const same = (x: Issue) => [x.code, x.date, x.employeeIds.join(), x.serviceIds.join()].join("|");
+  const still = args.afterRepair && outdated > 0 ? new Set(args.afterRepair.map(same)) : null;
+  const listed = issues.filter((x) => x.severity === "must_fix" && (!still || still.has(same(x))));
+  for (const [i, issue] of listed.entries()) {
     const gap = (issue.code === "no_cover" || issue.code === "short_staffed") && issue.date;
     tasks.push({
       key: `problem-${i}`,

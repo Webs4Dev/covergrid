@@ -27,6 +27,17 @@ body {
   outline-offset: 2px;
 }
 
+@layer base {
+  /* A very long name without spaces must wrap, not widen the page. */
+  main {
+    overflow-wrap: anywhere;
+  }
+  /* Table columns still size to their words; tables scroll inside their panel. */
+  main table {
+    overflow-wrap: normal;
+  }
+}
+
 @layer components {
   .panel {
     @apply rounded-[10px] border border-line bg-surface;

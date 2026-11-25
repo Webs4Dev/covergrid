@@ -39,6 +39,15 @@ day. CSV files open in Excel and Google Sheets. There is **no login**: this is
 a demo with fictional data, so anyone can edit it, and **Reset sample data** on the Overview
 page restores it. Do not enter real personal data.
 
+## Safety and limits
+
+- No login, by design: anyone with the link can edit or reset the demo.
+- Every input is checked on the server, database queries are parameterised, and database
+  error text is never shown.
+- Each kind of data has a row limit so roster generation stays quick.
+- `npm audit` reports a moderate issue inside `drizzle-kit` (a development tool, not part
+  of the running app).
+
 ## Checks
 
 `npm run roster:preview -- 2026-12` prints a roster made from the sample data and every problem found in it.
