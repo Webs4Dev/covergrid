@@ -1,9 +1,8 @@
 // Prints a roster made from the sample data, without a database:
 //   npm run roster:preview -- 2026-12
+import { checkRoster } from "../src/engine/check.ts";
 import { monthDates, weekdayOf } from "../src/engine/dates.ts";
-import { createDemand } from "../src/engine/demand.ts";
 import { generateRoster } from "../src/engine/generate.ts";
-import * as data from "../src/seed/data.ts";
 import { sampleInput } from "../src/seed/roster-input.ts";
 
 const input = sampleInput(process.argv[2] ?? "2026-12");
@@ -23,19 +22,10 @@ for (const e of input.employees) {
   console.log(e.name.padEnd(20) + row.join(" "));
 }
 
-const demand = createDemand(input);
-let required = 0;
-const gaps: string[] = [];
-for (const date of dates) {
-  for (const s of input.services) {
-    const need = demand(s, date);
-    const have = days.filter((x) => x.date === date && x.duties.some((d) => d.serviceId === s.id)).length;
-    required += need;
-    if (have < need) {
-      const name = `${data.brands[s.brandId - 1].name} ${data.processes[s.processId - 1].code}`;
-      gaps.push(`${date}  ${name}: needs ${need}, has ${have}`);
-    }
-  }
+const issues = checkRoster(input, days);
+const mustFix = issues.filter((i) => i.severity === "must_fix");
+console.log(`\nMade in ${ms} ms, exact: ${exact}. ${mustFix.length} must fix, ${issues.length - mustFix.length} preferences.`);
+for (const i of issues) {
+  console.log(`\n[${i.severity === "must_fix" ? "MUST FIX" : "preference"}] ${i.date ?? "month"}  ${i.message}`);
+  for (const reason of i.reasons) console.log(`    - ${reason}`);
 }
-console.log(`\n${required} places to cover, ${gaps.length} service-days short, exact: ${exact}, ${ms} ms`);
-for (const gap of gaps) console.log(`  ${gap}`);
