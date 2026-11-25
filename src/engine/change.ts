@@ -45,12 +45,24 @@ export function changedDays(before: RosterDay[], after: RosterDay[]): DayChange[
 
 // ---------- repairing ----------
 
+const byPersonThenDate = (a: RosterDay, b: RosterDay) => a.employeeId - b.employeeId || a.date.localeCompare(b.date);
+
+export type DateRange = { startDate: string; endDate: string };
+
 /**
  * Brings a roster in line with the current data and fills gaps with approved people.
  * Weekly offs are never moved and days without a problem are left exactly as they are.
  * A day the manager edited by hand keeps its duties, unless the person cannot work.
+ * With a range, only those dates may change, so one change does not drag in others.
  */
-export function repair(input: CheckInput, days: RosterDay[]): RosterDay[] {
+export function repair(input: CheckInput, days: RosterDay[], range?: DateRange): RosterDay[] {
+  if (!range) return repairMonth(input, days);
+  const inside = (d: RosterDay) => d.date >= range.startDate && d.date <= range.endDate;
+  return [...days.filter((d) => !inside(d)), ...repairMonth(input, days).filter(inside)].sort(byPersonThenDate);
+}
+
+// Each date is repaired on its own, which is why the result can be cut by date.
+function repairMonth(input: CheckInput, days: RosterDay[]): RosterDay[] {
   const dates = monthDates(input.month);
   const demand = createDemand(input);
   const { cannotWork, counts } = coverRules(input);
@@ -123,7 +135,7 @@ export function repair(input: CheckInput, days: RosterDay[]): RosterDay[] {
       }
     }
   }
-  return [...result.values()].sort((a, b) => a.employeeId - b.employeeId || a.date.localeCompare(b.date));
+  return [...result.values()].sort(byPersonThenDate);
 
   // Someone added after the roster was made: their favourite days off, else the weekend.
   function newcomerStatus(employeeId: number, date: string): DayStatus {
@@ -201,7 +213,8 @@ export function suggestFixes(input: CheckInput, days: RosterDay[], service: Serv
         const then = days.find((d) => d.employeeId === e.id && d.date === other);
         if (other === date || !dates.includes(other) || then?.status !== "working") continue;
         const moved = replace(withDuty(role === "backup"), { ...then, status: "weekly_off", duties: [], locked: true });
-        const next = repair(input, moved);
+        // Only the day given up needs new cover.
+        const next = repair(input, moved, { startDate: other, endDate: other });
         if (!next.some((d) => d.employeeId === e.id && d.date === date && counts(d, service.id))) continue;
         const cost = price(input, next);
         if (cost !== null && (!best || cost < best.cost)) best = { next, cost, other };
@@ -291,7 +304,7 @@ export function otherLeaveDates(input: CheckInput, days: RosterDay[], leave: { e
     const working = days.filter((d) => d.employeeId === leave.employeeId && d.date >= startDate && d.date <= endDate);
     if (!working.some((d) => d.status === "working")) continue; // already off then
     const using = { ...input, timeOff: [...input.timeOff, { ...leave, status: "approved" as const, startDate, endDate }] };
-    const { added } = diffIssues(now, checkRoster(using, repair(using, days)));
+    const { added } = diffIssues(now, checkRoster(using, repair(using, days, { startDate, endDate })));
     if (!added.some((i) => i.severity === "must_fix")) found.push({ startDate, endDate });
     if (found.length === 3) break;
   }
