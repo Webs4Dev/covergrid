@@ -11,7 +11,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:reset": "node scripts/reset-sample-data.ts"
+    "db:reset": "node scripts/reset-sample-data.ts",
+    "roster:preview": "node scripts/preview-roster.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.1",
