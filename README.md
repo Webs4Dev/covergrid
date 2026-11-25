@@ -19,6 +19,6 @@ Requires Node.js 22.12 or newer and a PostgreSQL database on [Neon](https://neon
 
 ## Checks
 
-`npm run roster:preview -- 2026-12` prints a roster made from the sample data.
+`npm run roster:preview -- 2026-12` prints a roster made from the sample data and every problem found in it.
 
 `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`
