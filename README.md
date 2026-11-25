@@ -27,7 +27,11 @@ process or employee. Select a date to see who is working that day.
 
 **Problems** lists everything wrong with the roster and why. A roster with must-fix
 problems can only be published with a written reason. Publishing gives each person who
-works a public holiday one comp-off; returning to draft removes those again. There is **no login**: this is
+works a public holiday one comp-off; returning to draft removes those again.
+
+**Changes after a roster exists:** select a cell to edit a day, or Review a request under
+Time off. Both show the effect, new gaps and checked fixes before anything is saved. When
+other data changes, the roster offers a repair that touches only the affected days. There is **no login**: this is
 a demo with fictional data, so anyone can edit it, and **Reset sample data** on the Overview
 page restores it. Do not enter real personal data.
 

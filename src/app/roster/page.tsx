@@ -8,6 +8,7 @@ import { PublishForm } from "@/components/publish-form";
 import { DayDetail, EmployeeCalendar } from "@/components/roster-detail";
 import { CoverageGrid, Legend, PeopleGrid } from "@/components/roster-grid";
 import { loadChanges, loadInput, loadRoster } from "@/db/roster";
+import { changedDays, repair } from "@/engine/change";
 import { canPublish, checkRoster } from "@/engine/check";
 import type { Employee } from "@/engine/types";
 import { isMonth, monthChoices, monthLabel, nextMonth } from "@/lib/months";
@@ -20,6 +21,7 @@ const VIEWS = { company: "Company", pod: "Pod", brand: "Brand", process: "Proces
 type View = keyof typeof VIEWS | "day";
 
 const when = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
+const DONE: Record<string, string> = { saved: "Change saved.", repaired: "Roster repaired.", fixed: "Fix applied." };
 const text = (value: string | string[] | undefined) => (typeof value === "string" ? value : "");
 
 export default async function RosterPage({ searchParams }: PageProps<"/roster">) {
@@ -66,6 +68,7 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
   const changes = await loadChanges(roster.id);
   const data = createView(input, roster.days);
   const issues = checkRoster(input, roster.days);
+  const outdated = changedDays(roster.days, repair(input, roster.days)).length;
   const mustFix = issues.filter((i) => i.severity === "must_fix").length;
   const dayHref = (date: string) => href({ view: "day", date });
   const employeeHref = (id: number) => href({ view: "employee", id });
@@ -179,7 +182,7 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
           <Link href={href({ view: "problems" })} className="btn btn-primary">Review and publish</Link>
           <ConfirmButton
             label="Generate again" confirmLabel="Yes, replace it"
-            note="Builds the month again from the current data and replaces this draft."
+            note="Builds the month again from the current data. This draft and its manual edits are replaced."
             action={generate.bind(null, month)}
           />
           </div>
@@ -191,6 +194,14 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
           />
         )}
       </div>
+
+      {DONE[text(query.done)] && <p role="status" className="mt-3 rounded-md bg-accent-soft px-3 py-2 text-sm">{DONE[text(query.done)]}</p>}
+      {outdated > 0 && (
+        <p className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md bg-warn-soft px-3 py-2 text-sm text-warn">
+          The data no longer matches this roster, or a gap can be filled: {outdated} {outdated === 1 ? "day needs" : "days need"} an update.
+          <Link href={`/roster/repair?month=${month}`} className="btn">Review the repair</Link>
+        </p>
+      )}
 
       <nav aria-label="Roster views" className="mt-4 flex flex-wrap gap-1">
         {Object.entries(VIEWS).map(([key, label]) => (
@@ -220,7 +231,7 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
       <div className="mt-4 space-y-4">
         {!["day", "employee", "problems"].includes(view) && <Legend />}
         {content()}
-        {!["day", "problems"].includes(view) && <p className="text-xs text-muted">Select a date number to see who is working that day.</p>}
+        {!["day", "problems"].includes(view) && <p className="text-xs text-muted">Select a date number to see who is working that day, or a cell to edit that person&apos;s day.</p>}
         {view === "problems" && roster.status === "draft" && (
           <div className="max-w-3xl">
             <PublishForm action={publish.bind(null, month)} mustFix={mustFix} />

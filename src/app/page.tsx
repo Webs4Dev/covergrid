@@ -39,7 +39,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
     { label: "Pods", value: counts.pods, href: "/manage/pods" },
     { label: "Brands", value: counts.brands, href: "/manage/brands" },
     { label: "Brand processes", value: counts.services, href: "/manage/services" },
-    { label: "Leave requests waiting", value: counts.requests, href: "/manage/time-off" },
+    { label: "Leave requests waiting", value: counts.requests, href: "/manage/time-off?q=requested" },
   ];
 
   return (

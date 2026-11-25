@@ -1,8 +1,10 @@
 // Loads everything the roster logic needs, and saves or reads monthly rosters. Server only.
+import type { BatchItem } from "drizzle-orm/batch";
 import { and, between, desc, eq, like, sql } from "drizzle-orm";
 import type { CheckInput } from "@/engine/check";
 import { addDays, monthDates, weekOf } from "@/engine/dates";
-import type { DayStatus, RosterDay } from "@/engine/types";
+import type { DayChange } from "@/engine/change";
+import type { Assignment, DayStatus, RosterDay, TimeOff } from "@/engine/types";
 import { CREDIT_PREFIX } from "@/lib/publish";
 import { getDb } from "./index";
 import * as t from "./schema";
@@ -33,11 +35,12 @@ async function daysBetween(rosterId: number, from: string, to: string): Promise<
   for (const { dayId, serviceId, isBackup } of duties) {
     byDay.set(dayId, [...(byDay.get(dayId) ?? []), { serviceId, isBackup }]);
   }
-  return days.map((d) => ({ employeeId: d.employeeId, date: d.date, status: d.status as DayStatus, duties: byDay.get(d.id) ?? [] }));
+  return days.map((d) => ({ employeeId: d.employeeId, date: d.date, status: d.status as DayStatus, duties: byDay.get(d.id) ?? [], locked: d.isLocked }));
 }
 
 /** The roster data plus the names the screens show. */
-export type RosterData = Omit<CheckInput, "pods" | "processes" | "holidays"> & {
+export type RosterData = Omit<CheckInput, "pods" | "processes" | "holidays" | "timeOff"> & {
+  timeOff: (TimeOff & { id: number })[];
   holidays: { date: string; name: string }[];
   pods: { id: number; name: string; leadId: number | null }[];
   processes: { id: number; code: string; name: string }[];
@@ -161,4 +164,75 @@ export async function markDraft(rosterId: number, month: string) {
       between(t.compOffCredits.earnedOn, dates[0], dates[dates.length - 1]),
     )),
   ]);
+}
+
+/** Months from a list that already have a roster. */
+export async function monthsWithRoster(from: string, to: string) {
+  const rows = await getDb().select({ month: t.rosters.month }).from(t.rosters)
+    .where(between(t.rosters.month, firstOf(from.slice(0, 7)), firstOf(to.slice(0, 7)))).orderBy(t.rosters.month);
+  return rows.map((r) => r.month.slice(0, 7));
+}
+
+export async function loadTimeOff(id: number) {
+  const [row] = await getDb().select().from(t.timeOff).where(eq(t.timeOff.id, id));
+  return row ?? null;
+}
+
+export type RosterUpdate = {
+  month: string;
+  roster: SavedRoster;
+  changes: DayChange[];
+  newAssignments: Assignment[];
+  credits: Credit[]; // holiday comp-offs, used only if the roster is published
+  summary: string;
+};
+
+type TimeOffUpdate = { id: number; from: "requested" | "approved"; to: "approved" | "rejected" | "cancelled" };
+
+/** Saves changed days (and a leave decision) in one transaction: all of it or none. */
+export async function saveChanges(updates: RosterUpdate[], timeOff?: TimeOffUpdate) {
+  const db = getDb();
+  const queries = updates.flatMap(({ month, roster, changes, newAssignments, credits, summary }) => {
+    const gone = changes.filter((c) => !c.after).map((c) => ({ employee_id: c.before!.employeeId, date: c.before!.date }));
+    const kept = changes.flatMap((c) => (c.after ? [c.after] : []));
+    const rows = kept.map((d) => ({ employee_id: d.employeeId, date: d.date, status: d.status, is_locked: Boolean(d.locked) }));
+    const duties = kept.flatMap((d) => d.duties.map((x) => ({ employee_id: d.employeeId, date: d.date, service_id: x.serviceId, is_backup: x.isBackup })));
+    const dates = monthDates(month);
+    const list: BatchItem<"pg">[] = [
+      ...(gone.length ? [db.execute(sql`delete from roster_days d
+        using json_to_recordset(${JSON.stringify(gone)}::json) as v(employee_id int, date date)
+        where d.roster_id = ${roster.id} and d.employee_id = v.employee_id and d.date = v.date`)] : []),
+      ...(rows.length ? [
+        db.execute(sql`insert into roster_days (roster_id, employee_id, date, status, is_locked)
+          select ${roster.id}::int, v.employee_id, v.date, v.status::day_status, v.is_locked
+          from json_to_recordset(${JSON.stringify(rows)}::json) as v(employee_id int, date date, status text, is_locked boolean)
+          on conflict (roster_id, employee_id, date) do update set status = excluded.status, is_locked = excluded.is_locked`),
+        db.execute(sql`delete from roster_duties u using roster_days d,
+          json_to_recordset(${JSON.stringify(rows)}::json) as v(employee_id int, date date)
+          where u.roster_day_id = d.id and d.roster_id = ${roster.id} and d.employee_id = v.employee_id and d.date = v.date`),
+      ] : []),
+      ...(newAssignments.length ? [db.insert(t.assignments).values(newAssignments).onConflictDoNothing()] : []),
+      ...(duties.length ? [db.execute(sql`insert into roster_duties (roster_day_id, service_id, is_backup)
+        select d.id, v.service_id, v.is_backup
+        from json_to_recordset(${JSON.stringify(duties)}::json) as v(employee_id int, date date, service_id int, is_backup boolean)
+        join roster_days d on d.roster_id = ${roster.id} and d.employee_id = v.employee_id and d.date = v.date`)] : []),
+      db.insert(t.rosterChanges).values({ rosterId: roster.id, summary: summary.slice(0, 500) }),
+    ];
+    if (roster.status === "published") {
+      list.push(
+        db.delete(t.compOffCredits).where(and(
+          like(t.compOffCredits.reason, `${CREDIT_PREFIX}%`),
+          between(t.compOffCredits.earnedOn, dates[0], dates[dates.length - 1]),
+        )),
+        ...(credits.length ? [db.insert(t.compOffCredits).values(credits).onConflictDoNothing()] : []),
+      );
+    }
+    return list;
+  });
+  // Only changes the decision the manager was looking at; a newer one is left alone.
+  const decision = timeOff
+    ? [db.update(t.timeOff).set({ status: timeOff.to }).where(and(eq(t.timeOff.id, timeOff.id), eq(t.timeOff.status, timeOff.from)))]
+    : [];
+  const [head, ...tail]: BatchItem<"pg">[] = [...decision, ...queries];
+  if (head) await db.batch([head, ...tail]);
 }

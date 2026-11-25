@@ -237,11 +237,11 @@ export function generateRoster(input: RosterInput): { days: RosterDay[]; exact: 
   return { days, exact };
 }
 
-type Group = { employees: Employee[]; services: Service[]; assignments: RosterInput["assignments"] };
+export type Group = { employees: Employee[]; services: Service[]; assignments: RosterInput["assignments"] };
 
 // People and services that are linked by assignments are planned together.
 // Unlinked groups (usually pods) cannot affect each other, which keeps this fast.
-function connectedGroups(employees: Employee[], services: Service[], assignments: RosterInput["assignments"]): Group[] {
+export function connectedGroups(employees: Employee[], services: Service[], assignments: RosterInput["assignments"]): Group[] {
   const parent = new Map<string, string>();
   const find = (x: string): string => {
     const p = parent.get(x) ?? x;
