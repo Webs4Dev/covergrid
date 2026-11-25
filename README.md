@@ -17,6 +17,13 @@ Requires Node.js 22.12 or newer and a PostgreSQL database on [Neon](https://neon
 |---|---|
 | `DATABASE_URL` | Neon PostgreSQL connection string |
 
+## Using it
+
+The side menu holds every kind of data (people, brands, assignments, rules, time off).
+Add, edit and delete from there; no code changes are needed. There is **no login**: this is
+a demo with fictional data, so anyone can edit it, and **Reset sample data** on the Overview
+page restores it. Do not enter real personal data.
+
 ## Checks
 
 `npm run roster:preview -- 2026-12` prints a roster made from the sample data and every problem found in it.

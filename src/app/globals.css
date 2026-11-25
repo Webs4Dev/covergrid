@@ -1,26 +1,45 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-paper: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-ink: #1b2a47;
+  --color-muted: #5a6681;
+  --color-line: #dbe1ea;
+  --color-accent: #0f7c74;
+  --color-accent-soft: #e0f2f0;
+  --color-danger: #b3261e;
+  --color-danger-soft: #fdecea;
+  --color-warn: #8a5a00;
+  --color-warn-soft: #fff3d6;
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-paper);
+  color: var(--color-ink);
   font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-[10px] border border-line bg-surface;
+  }
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink hover:border-muted disabled:cursor-wait disabled:opacity-60;
+  }
+  .btn-primary {
+    @apply border-accent bg-accent text-white hover:border-ink;
+  }
+  .btn-danger {
+    @apply border-danger bg-danger text-white hover:border-ink;
+  }
+  .control {
+    @apply w-full rounded-md border border-line bg-surface px-2.5 py-1.5 text-base sm:text-sm;
+  }
 }
