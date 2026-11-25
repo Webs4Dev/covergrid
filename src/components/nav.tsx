@@ -20,6 +20,7 @@ export function Nav() {
   return (
     <nav aria-label="Main" className="flex gap-1 overflow-x-auto p-2 md:block md:overflow-visible md:p-3">
       {link("/", "Overview")}
+      {link("/roster", "Roster")}
       {navigation.map((group) => (
         <div key={group.heading} className="contents md:mt-4 md:block">
           <p className="mb-1 hidden px-2.5 text-xs font-semibold text-white/50 md:block">{group.heading}</p>
