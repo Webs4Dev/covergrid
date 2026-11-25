@@ -34,9 +34,20 @@ export default async function LeavePage({ searchParams }: PageProps<"/roster/lea
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-4">
       <div>
-        <Link href="/manage/time-off" className="text-sm text-accent underline">Back to time off</Link>
-        <h1 className="mt-1 text-2xl font-semibold">{person?.name}: {kind.toLowerCase()}, {range}</h1>
-        <p className="text-sm text-muted">{entry.reason ? `${entry.reason}. ` : ""}Status: {entry.status}.</p>
+        <Link href="/manage/time-off" className="btn-sm">Back to time off</Link>
+        <h1 className="mt-3 text-2xl font-semibold">{person?.name}: {kind.toLowerCase()}, {range}</h1>
+        <div className="panel mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 p-3">
+          <p className="text-sm">
+            <span className="mr-2 text-muted">Reason for {kind.toLowerCase()}</span>
+            <span className="reason text-base">{entry.reason || "No reason given"}</span>
+          </p>
+          <p className="text-sm">
+            <span className="mr-2 text-muted">Status</span>
+            <span className={`chip ${entry.status === "requested" ? "border border-accent text-accent" : "bg-accent-soft text-ink"}`}>
+              {entry.status[0].toUpperCase() + entry.status.slice(1)}
+            </span>
+          </p>
+        </div>
       </div>
       {done && <p role="status" className="rounded-md bg-accent-soft px-3 py-2 text-sm">Saved. This entry is now {entry.status}.</p>}
 

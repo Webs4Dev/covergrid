@@ -166,13 +166,15 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
             {canPublish(issues) ? (
               <span>No must-fix problems.</span>
             ) : (
-              <Link href={href({ view: "problems" })} className="font-medium text-danger underline">
+              <Link href={href({ view: "problems" })} className="btn-sm btn-sm-danger">
                 {mustFix} must-fix {mustFix === 1 ? "problem" : "problems"}.
               </Link>
             )}{" "}
             <span className="text-muted">{issues.length - mustFix} preference notes.</span>
           </p>
-          {roster.overrideReason && <p className="mt-1 text-muted">Published anyway because: {roster.overrideReason}</p>}
+          {roster.overrideReason && (
+            <p className="mt-1 text-muted">Published anyway because: <span className="reason">{roster.overrideReason}</span></p>
+          )}
           {roster.status === "published" && mustFix > 0 && !roster.overrideReason && (
             <p role="alert" className="mt-1 font-medium text-danger">Something changed after publishing. Check the problems.</p>
           )}
@@ -203,10 +205,10 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
         </p>
       )}
 
-      <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+      <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
         <span className="text-muted">Download CSV:</span>
         {Object.entries(EXPORTS).map(([type, label]) => (
-          <a key={type} href={`/roster/export?month=${month}&type=${type}`} download className="text-accent underline">{label}</a>
+          <a key={type} href={`/roster/export?month=${month}&type=${type}`} download className="btn-sm">{label}</a>
         ))}
       </p>
 

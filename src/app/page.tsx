@@ -42,7 +42,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
     loadInput(month),
     loadRoster(month),
     getDb()
-      .select({ id: timeOff.id, name: employees.name, startDate: timeOff.startDate, endDate: timeOff.endDate })
+      .select({ id: timeOff.id, name: employees.name, startDate: timeOff.startDate, endDate: timeOff.endDate, reason: timeOff.reason })
       .from(timeOff)
       .innerJoin(employees, eq(employees.id, timeOff.employeeId))
       .where(eq(timeOff.status, "requested"))
@@ -55,7 +55,11 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
   const tasks = buildTasks({ month, roster, issues, outdated, requests, format });
   const monthStart = calendar[0].date;
   const monthEnd = calendar[calendar.length - 1].date;
-  const KIND = { leave: "Leave", comp_off: "Comp-off", unavailable: "Unavailable" } as const;
+  const KIND = {
+    leave: { label: "Leave", style: "bg-accent text-white" },
+    comp_off: { label: "Comp-off", style: "bg-accent-soft text-accent" },
+    unavailable: { label: "Unavailable", style: "bg-ink text-white" },
+  } as const;
   const away = input.timeOff
     .filter((t) => t.status === "approved" && t.startDate <= monthEnd && t.endDate >= monthStart)
     .sort((a, b) => a.startDate.localeCompare(b.startDate))
@@ -63,6 +67,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
       id: t.id,
       name: input.employees.find((e) => e.id === t.employeeId)?.name ?? "Someone switched off",
       kind: KIND[t.kind],
+      reason: t.reason,
       when: t.startDate === t.endDate ? format(t.startDate) : `${format(t.startDate)} to ${format(t.endDate)}`,
     }));
   const mustFix = issues.filter((i) => i.severity === "must_fix").length;
@@ -133,6 +138,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
                   <p className={`text-xs font-semibold ${TASK_STYLE[task.kind].text}`}>{TASK_STYLE[task.kind].tag}</p>
                   <p className="text-sm font-semibold">{task.title}</p>
                   <p className="text-xs text-muted">{task.detail}</p>
+                  {task.reason && <p className="reason mt-1 text-xs">{task.reason}</p>}
                 </div>
                 <Link href={task.href} className="btn shrink-0">{task.action}</Link>
               </li>
@@ -141,11 +147,17 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
 
           <h2 className="mt-4 mb-1 font-semibold">Time off this month ({away.length})</h2>
           {away.length === 0 && <p className="text-sm text-muted">Nobody has approved time off.</p>}
-          <ul className="text-sm lg:min-h-16 lg:flex-1 lg:basis-0 lg:overflow-y-auto">
+          <ul className="space-y-1.5 text-sm lg:min-h-16 lg:flex-1 lg:basis-0 lg:overflow-y-auto">
             {away.map((a) => (
-              <li key={a.id} className="flex justify-between gap-3 border-t border-line py-1.5">
-                <span className="font-medium">{a.name}</span>
-                <span className="text-right text-muted">{a.kind}, {a.when}</span>
+              <li key={a.id} className="flex items-center justify-between gap-3 rounded-lg bg-paper px-2.5 py-1.5">
+                <div className="min-w-0">
+                  <p className="font-semibold">{a.name}</p>
+                  {a.reason && <p className="truncate text-xs text-muted" title={a.reason}>{a.reason}</p>}
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <span className={`chip ${a.kind.style}`}>{a.kind.label}</span>
+                  <span className="text-xs font-semibold">{a.when}</span>
+                </div>
               </li>
             ))}
           </ul>

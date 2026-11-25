@@ -113,7 +113,9 @@ export default async function ManagePage({ params, searchParams }: PageProps<"/m
             {table.map(({ row, cells }) => (
               <tr key={row.key} className="border-b border-line last:border-0 hover:bg-paper">
                 {cells.map((cell, i) => (
-                  <td key={columns[i].name} className="max-w-64 truncate px-3 py-2" title={cell}>{cell}</td>
+                  <td key={columns[i].name} className="max-w-64 truncate px-3 py-2" title={cell}>
+                    {columns[i].name === "reason" && cell !== "-" ? <span className="reason">{cell}</span> : cell}
+                  </td>
                 ))}
                 <td className="px-3 py-1.5">
                   <div className="flex items-start justify-end gap-2">

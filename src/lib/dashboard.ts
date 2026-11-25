@@ -43,11 +43,12 @@ export type Task = {
   kind: "problem" | "leave" | "step";
   title: string;
   detail: string;
+  reason?: string;
   href: string;
   action: string;
 };
 
-type Request = { id: number; name: string; startDate: string; endDate: string };
+type Request = { id: number; name: string; startDate: string; endDate: string; reason?: string | null };
 
 /** What the manager should do, most urgent first. */
 export function buildTasks(args: {
@@ -79,7 +80,7 @@ export function buildTasks(args: {
   }
   for (const r of requests) {
     const range = r.startDate === r.endDate ? format(r.startDate) : `${format(r.startDate)} to ${format(r.endDate)}`;
-    tasks.push({ key: `leave-${r.id}`, kind: "leave", title: `${r.name} asked for time off`, detail: range, href: `/roster/leave?id=${r.id}`, action: "Review" });
+    tasks.push({ key: `leave-${r.id}`, kind: "leave", title: `${r.name} asked for time off`, detail: range, reason: r.reason ?? undefined, href: `/roster/leave?id=${r.id}`, action: "Review" });
   }
   if (roster?.status === "draft") {
     tasks.push({ key: "publish", kind: "step", title: "Publish the roster", detail: "Makes this month's plan final.", href: `/roster?month=${month}&view=problems`, action: "Publish" });

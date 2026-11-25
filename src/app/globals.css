@@ -40,6 +40,21 @@ body {
   .btn-danger {
     @apply border-danger bg-danger text-white hover:border-ink;
   }
+  .btn-sm {
+    @apply inline-flex items-center rounded-md border border-line bg-surface px-2 py-0.5 text-xs font-semibold text-accent hover:border-accent;
+  }
+  .btn-sm-primary {
+    @apply border-accent bg-accent text-white hover:border-ink;
+  }
+  .btn-sm-danger {
+    @apply border-danger/50 bg-danger-soft text-danger hover:border-danger;
+  }
+  .chip {
+    @apply inline-block rounded-md px-2 py-0.5 text-xs font-semibold whitespace-nowrap;
+  }
+  .reason {
+    @apply inline-block rounded-md bg-accent-soft px-2 py-0.5 font-medium text-ink;
+  }
   .control {
     @apply w-full rounded-md border border-line bg-surface px-2.5 py-1.5 text-base sm:text-sm;
   }

@@ -25,8 +25,8 @@ export default async function FixPage({ searchParams }: PageProps<"/roster/fix">
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-4">
       <div>
-        <Link href={`/roster?month=${month}&view=problems`} className="text-sm text-accent underline">Back to problems</Link>
-        <h1 className="mt-1 text-2xl font-semibold">Find a fix</h1>
+        <Link href={`/roster?month=${month}&view=problems`} className="btn-sm">Back to problems</Link>
+        <h1 className="mt-3 text-2xl font-semibold">Find a fix</h1>
         <p className="text-sm text-muted">Every option was checked: none breaks another must-fix rule. Each fills one place.</p>
       </div>
       {!issue ? (
