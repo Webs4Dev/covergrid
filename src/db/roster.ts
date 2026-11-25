@@ -1,14 +1,22 @@
 // Loads everything the roster logic needs, and saves or reads monthly rosters. Server only.
-import { and, between, eq, sql } from "drizzle-orm";
+import { and, between, desc, eq, like, sql } from "drizzle-orm";
 import type { CheckInput } from "@/engine/check";
 import { addDays, monthDates, weekOf } from "@/engine/dates";
 import type { DayStatus, RosterDay } from "@/engine/types";
+import { CREDIT_PREFIX } from "@/lib/publish";
 import { getDb } from "./index";
 import * as t from "./schema";
 
 const firstOf = (month: string) => `${month}-01`;
 
-export type SavedRoster = { id: number; status: "draft" | "published"; generatedAt: Date; days: RosterDay[] };
+export type SavedRoster = {
+  id: number;
+  status: "draft" | "published";
+  generatedAt: Date;
+  publishedAt: Date | null;
+  overrideReason: string | null;
+  days: RosterDay[];
+};
 
 async function daysBetween(rosterId: number, from: string, to: string): Promise<RosterDay[]> {
   const db = getDb();
@@ -29,7 +37,8 @@ async function daysBetween(rosterId: number, from: string, to: string): Promise<
 }
 
 /** The roster data plus the names the screens show. */
-export type RosterData = Omit<CheckInput, "pods" | "processes"> & {
+export type RosterData = Omit<CheckInput, "pods" | "processes" | "holidays"> & {
+  holidays: { date: string; name: string }[];
   pods: { id: number; name: string; leadId: number | null }[];
   processes: { id: number; code: string; name: string }[];
 };
@@ -90,7 +99,8 @@ export async function loadRoster(month: string): Promise<SavedRoster | null> {
   if (!roster) return null;
   const dates = monthDates(month);
   const days = await daysBetween(roster.id, dates[0], dates[dates.length - 1]);
-  return { id: roster.id, status: roster.status, generatedAt: roster.generatedAt, days };
+  const { id, status, generatedAt, publishedAt, overrideReason } = roster;
+  return { id, status, generatedAt, publishedAt, overrideReason, days };
 }
 
 /** Replaces the month's draft in one transaction, so a failure keeps the old one. */
@@ -117,5 +127,38 @@ export async function saveRoster(month: string, days: RosterDay[]) {
             employee_id: x.employeeId, date: x.date, service_id: x.serviceId, is_backup: x.isBackup,
           })))}::json) as v(employee_id int, date date, service_id int, is_backup boolean)
           join roster_days d on d.roster_id = ${rosterId} and d.employee_id = v.employee_id and d.date = v.date`)]),
+  ]);
+}
+
+export async function loadChanges(rosterId: number) {
+  return getDb().select().from(t.rosterChanges).where(eq(t.rosterChanges.rosterId, rosterId))
+    .orderBy(desc(t.rosterChanges.createdAt), desc(t.rosterChanges.id)).limit(10);
+}
+
+type Credit = { employeeId: number; earnedOn: string; reason: string };
+
+export async function markPublished(rosterId: number, reason: string | null, credits: Credit[]) {
+  const db = getDb();
+  await db.batch([
+    db.update(t.rosters).set({ status: "published", publishedAt: new Date(), overrideReason: reason })
+      .where(eq(t.rosters.id, rosterId)),
+    db.insert(t.rosterChanges).values({
+      rosterId, summary: reason ? `Published with open problems: ${reason}` : "Published",
+    }),
+    // A day that already earned a credit does not earn a second one.
+    ...(credits.length ? [db.insert(t.compOffCredits).values(credits).onConflictDoNothing()] : []),
+  ]);
+}
+
+export async function markDraft(rosterId: number, month: string) {
+  const db = getDb();
+  const dates = monthDates(month);
+  await db.batch([
+    db.update(t.rosters).set({ status: "draft", publishedAt: null, overrideReason: null }).where(eq(t.rosters.id, rosterId)),
+    db.insert(t.rosterChanges).values({ rosterId, summary: "Returned to draft" }),
+    db.delete(t.compOffCredits).where(and(
+      like(t.compOffCredits.reason, `${CREDIT_PREFIX}%`),
+      between(t.compOffCredits.earnedOn, dates[0], dates[dates.length - 1]),
+    )),
   ]);
 }
