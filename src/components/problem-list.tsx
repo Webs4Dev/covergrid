@@ -30,16 +30,16 @@ export function ProblemList({ issues, href, brandOfService }: Props) {
                 {issue.reasons.map((r) => <li key={r}>{readable(r)}</li>)}
               </ul>
             )}
-            <p className="mt-2 flex flex-wrap gap-3 text-sm">
+            <p className="mt-2 flex flex-wrap gap-2">
               {(issue.code === "no_cover" || issue.code === "short_staffed") && (
-                <Link className="font-medium text-accent underline" href={`/roster/fix?month=${issue.date!.slice(0, 7)}&service=${issue.serviceIds[0]}&date=${issue.date}`}>Find a fix</Link>
+                <Link className="btn-sm btn-sm-primary" href={`/roster/fix?month=${issue.date!.slice(0, 7)}&service=${issue.serviceIds[0]}&date=${issue.date}`}>Find a fix</Link>
               )}
-              {issue.date && <Link className="text-accent underline" href={href({ view: "day", date: issue.date })}>See that day</Link>}
+              {issue.date && <Link className="btn-sm" href={href({ view: "day", date: issue.date })}>See that day</Link>}
               {issue.employeeIds.length === 1 && (
-                <Link className="text-accent underline" href={href({ view: "employee", id: issue.employeeIds[0] })}>See the person</Link>
+                <Link className="btn-sm" href={href({ view: "employee", id: issue.employeeIds[0] })}>See the person</Link>
               )}
               {issue.serviceIds.length === 1 && brandOfService.has(issue.serviceIds[0]) && (
-                <Link className="text-accent underline" href={href({ view: "brand", id: brandOfService.get(issue.serviceIds[0])! })}>See the brand</Link>
+                <Link className="btn-sm" href={href({ view: "brand", id: brandOfService.get(issue.serviceIds[0])! })}>See the brand</Link>
               )}
             </p>
           </li>

@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Icon } from "@/components/icon";
 import { connection } from "next/server";
 import { saveDecision } from "@/app/roster/actions";
 import { ChangeForm } from "@/components/change-form";
@@ -32,11 +33,24 @@ export default async function LeavePage({ searchParams }: PageProps<"/roster/lea
   const range = entry.startDate === entry.endDate ? showDate(entry.startDate) : `${showDate(entry.startDate)} to ${showDate(entry.endDate)}`;
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-4 p-4">
       <div>
-        <Link href="/manage/time-off" className="text-sm text-accent underline">Back to time off</Link>
-        <h1 className="mt-1 text-2xl font-semibold">{person?.name}: {kind.toLowerCase()}, {range}</h1>
-        <p className="text-sm text-muted">{entry.reason ? `${entry.reason}. ` : ""}Status: {entry.status}.</p>
+        <Link href="/manage/time-off" className="btn-sm"><Icon name="back" />Back to time off</Link>
+        <h1 className="mt-3 text-2xl font-semibold">{person?.name}: {kind.toLowerCase()}, {range}</h1>
+        <dl className="panel mt-3 flex flex-wrap items-start gap-x-10 gap-y-3 p-4">
+          <div>
+            <dt className="text-xs text-muted">Reason for {kind.toLowerCase()}</dt>
+            <dd className="mt-0.5 text-base font-semibold">{entry.reason || "No reason given"}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted">Status</dt>
+            <dd className="mt-1">
+              <span className={`tag ${entry.status === "requested" ? "text-accent" : "text-ink"}`}>
+                {entry.status[0].toUpperCase() + entry.status.slice(1)}
+              </span>
+            </dd>
+          </div>
+        </dl>
       </div>
       {done && <p role="status" className="rounded-md bg-accent-soft px-3 py-2 text-sm">Saved. This entry is now {entry.status}.</p>}
 

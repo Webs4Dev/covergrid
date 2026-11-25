@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { generate, publish, unpublish } from "@/app/actions";
 import { ConfirmButton } from "@/components/confirm-button";
 import { GenerateButton } from "@/components/generate-button";
+import { Icon } from "@/components/icon";
 import { ProblemList } from "@/components/problem-list";
 import { PublishForm } from "@/components/publish-form";
 import { DayDetail, EmployeeCalendar } from "@/components/roster-detail";
@@ -37,23 +38,22 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
 
   const header = (
     <>
-      <h1 className="text-2xl font-semibold">Roster</h1>
-      <form action="/roster" className="mt-3 flex flex-wrap items-end gap-2">
-        <input type="hidden" name="view" value={view === "day" ? "company" : view} />
-        <label className="text-sm font-medium">
-          Month
-          <select name="month" defaultValue={month} key={month} className="control mt-1">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-xl font-bold">Roster</h1>
+        <form action="/roster" className="flex flex-wrap gap-2">
+          <input type="hidden" name="view" value={view === "day" ? "company" : view} />
+          <select name="month" aria-label="Month" defaultValue={month} key={month} className="control w-auto">
             {months.map((m) => <option key={m} value={m}>{monthLabel(m)}</option>)}
           </select>
-        </label>
-        <button className="btn">Show month</button>
-      </form>
+          <button className="btn">Show month</button>
+        </form>
+      </div>
     </>
   );
 
   if (!roster) {
     return (
-      <div>
+      <div className="p-4">
         {header}
         <section className="panel mt-6 max-w-xl p-6">
           <h2 className="text-lg font-semibold">No roster for {monthLabel(month)} yet</h2>
@@ -90,7 +90,7 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
     if (view === "company") {
       return (
         <PeopleGrid
-          view={data} caption={`Company roster, ${monthLabel(month)}`} dayHref={dayHref} employeeHref={employeeHref}
+          fill view={data} caption={`Company roster, ${monthLabel(month)}`} dayHref={dayHref} employeeHref={employeeHref}
           groups={byName(input.pods)
             .map((pod) => ({ title: `Pod ${pod.name}`, people: people(input.employees.filter((e) => e.podId === pod.id)) }))
             .filter((g) => g.people.length > 0)}
@@ -156,10 +156,10 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
   }
 
   return (
-    <div>
+    <div className="flex flex-col p-4 lg:h-full lg:min-h-0">
       {header}
 
-      <div className="panel mt-4 flex flex-wrap items-center justify-between gap-3 p-3">
+      <div className="panel mt-3 flex flex-wrap items-center justify-between gap-3 p-3">
         <div className="text-sm">
           <p>
             <strong>{monthLabel(month)}</strong>, {roster.status}
@@ -167,13 +167,15 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
             {canPublish(issues) ? (
               <span>No must-fix problems.</span>
             ) : (
-              <Link href={href({ view: "problems" })} className="font-medium text-danger underline">
+              <Link href={href({ view: "problems" })} className="btn-sm btn-sm-danger">
                 {mustFix} must-fix {mustFix === 1 ? "problem" : "problems"}.
               </Link>
             )}{" "}
             <span className="text-muted">{issues.length - mustFix} preference notes.</span>
           </p>
-          {roster.overrideReason && <p className="mt-1 text-muted">Published anyway because: {roster.overrideReason}</p>}
+          {roster.overrideReason && (
+            <p className="mt-1 text-muted">Published anyway because: <span className="font-semibold text-ink">{roster.overrideReason}</span></p>
+          )}
           {roster.status === "published" && mustFix > 0 && !roster.overrideReason && (
             <p role="alert" className="mt-1 font-medium text-danger">Something changed after publishing. Check the problems.</p>
           )}
@@ -204,14 +206,14 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
         </p>
       )}
 
-      <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+      <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
         <span className="text-muted">Download CSV:</span>
         {Object.entries(EXPORTS).map(([type, label]) => (
-          <a key={type} href={`/roster/export?month=${month}&type=${type}`} download className="text-accent underline">{label}</a>
+          <a key={type} href={`/roster/export?month=${month}&type=${type}`} download className="btn-sm"><Icon name="download" />{label}</a>
         ))}
       </p>
 
-      <nav aria-label="Roster views" className="mt-4 flex flex-wrap gap-1">
+      <nav aria-label="Roster views" className="mt-2 flex flex-wrap items-center gap-1">
         {Object.entries(VIEWS).map(([key, label]) => (
           <Link
             key={key} href={`/roster?month=${month}&view=${key}`} aria-current={view === key ? "page" : undefined}
@@ -223,20 +225,17 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
       </nav>
 
       {list.length > 0 && chosen && (
-        <form action="/roster" className="mt-3 flex flex-wrap items-end gap-2">
+        <form action="/roster" className="mt-2 flex flex-wrap gap-2">
           <input type="hidden" name="month" value={month} />
           <input type="hidden" name="view" value={view} />
-          <label className="text-sm font-medium">
-            {VIEWS[view as keyof typeof VIEWS]}
-            <select name="id" defaultValue={chosen.id} key={`${view}-${chosen.id}`} className="control mt-1">
-              {list.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-            </select>
-          </label>
+          <select name="id" aria-label={VIEWS[view as keyof typeof VIEWS]} defaultValue={chosen.id} key={`${view}-${chosen.id}`} className="control w-auto">
+            {list.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+          </select>
           <button className="btn">Show</button>
         </form>
       )}
 
-      <div className="mt-4 space-y-4">
+      <div className="mt-3 flex flex-col gap-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
         {!["day", "employee", "problems"].includes(view) && <Legend />}
         {content()}
         {!["day", "problems"].includes(view) && <p className="text-xs text-muted">Select a date number to see who is working that day, or a cell to edit that person&apos;s day.</p>}

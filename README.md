@@ -19,7 +19,8 @@ Requires Node.js 22.12 or newer and a PostgreSQL database on [Neon](https://neon
 
 ## Using it
 
-The side menu holds every kind of data (people, brands, assignments, rules, time off).
+The **Dashboard** shows the month at a glance: what is waiting for you, coverage by day and
+by pod. The side menu holds every kind of data (people, brands, assignments, rules, time off).
 Add, edit and delete from there; no code changes are needed.
 
 On **Roster**, choose a month and generate it, then view it by company, pod, brand,

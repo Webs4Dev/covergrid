@@ -1,23 +1,28 @@
 # CoverGrid design
 
-For an operations manager on a laptop, working with dense data. Calm, clear, trustworthy.
-Light theme only.
+For an operations manager on a laptop, working with dense data. Friendly but professional,
+easy to scan. Light theme with a navy side menu.
+
+## Layout
+- The app fills the window. The dashboard does not scroll on a laptop; long tables and
+  lists scroll inside their own panel, with headers that stay in view.
+- Dashboard order: numbers, then to-do list beside a month calendar, then pods.
+- Side menu: daily work first (Dashboard, Roster, Time off); setup data in groups.
 
 ## Colour: 60 / 30 / 10
 
 | Share | Token | Value | Used for |
 |---|---|---|---|
-| 60% | `paper` / `surface` | `#f5f7fa` / `#ffffff` | page and panels |
-| 30% | `ink` | `#1b2a47` | sidebar, headings, body text |
-| 10% | `accent` | `#0f7c74` | primary buttons, links, current page, focus ring |
+| 60% | `paper` / `surface` | `#f7f7fb` / `#ffffff` | page and panels |
+| 30% | `ink` | `#1c1a33` | side menu, headings, text |
+| 10% | `accent` | `#5b3cc4` | buttons, links, current page, focus ring |
 
-Support: `muted` `#5a6681`, `line` `#dbe1ea`.
-Status colours are not decoration: `danger` `#b3261e` for must-fix problems and
-deleting, `warn` `#8a5a00` on `#fff3d6` for preferences. Never use them for anything else,
-and never rely on colour alone: always pair with words.
+Support: `muted` `#5a5773`, `line` `#e3e1ee`, `accent-soft` `#f0edfb`.
+`danger` `#b3261e` is only for must-fix problems and deleting. Preferences use a
+grey-purple (`warn`); no orange or yellow. Never rely on colour alone: pair with words.
 
 ## Type
-IBM Plex Sans, tabular numbers in tables. Sizes 12 / 14 / 18 / 24. Sentence case everywhere.
+Manrope, tabular numbers in tables.
 
 ## Shape
 Radius 6px for controls, 10px for panels. Borders, not shadows. Compact rows.

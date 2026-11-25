@@ -33,7 +33,7 @@ export function EmployeeCalendar({ view, employee, dayHref }: { view: RosterView
               <div key={date} className={`min-h-24 rounded-md border p-1.5 ${conflict.length > 0 ? "border-danger bg-danger-soft" : "border-line"} ${day && day.status !== "working" ? "bg-paper" : ""}`}>
                 <div className="flex justify-between">
                   <Link href={dayHref(date)} prefetch={false} className="font-semibold hover:text-accent">{Number(date.slice(8))}</Link>
-                  {day && <Link href={`/roster/edit?month=${date.slice(0, 7)}&date=${date}&employee=${employee.id}`} prefetch={false} className="text-accent underline">Edit</Link>}
+                  {day && <Link href={`/roster/edit?month=${date.slice(0, 7)}&date=${date}&employee=${employee.id}`} prefetch={false} className="btn-sm px-1.5 py-0">Edit</Link>}
                 </div>
                 {day && <p className="font-medium">{STATUS[day.status].label}</p>}
                 <ul className="text-muted">

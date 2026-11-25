@@ -40,7 +40,7 @@ async function daysBetween(rosterId: number, from: string, to: string): Promise<
 
 /** The roster data plus the names the screens show. */
 export type RosterData = Omit<CheckInput, "pods" | "processes" | "holidays" | "timeOff"> & {
-  timeOff: (TimeOff & { id: number })[];
+  timeOff: (TimeOff & { id: number; reason: string | null })[];
   holidays: { date: string; name: string }[];
   pods: { id: number; name: string; leadId: number | null }[];
   processes: { id: number; code: string; name: string }[];

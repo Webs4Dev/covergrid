@@ -67,7 +67,7 @@ export async function planDecision(id: number, decision: Decision) {
       if (!loaded) continue;
       const { input, roster } = loaded;
       const using = { ...input, timeOff: input.timeOff.map((t) => (t.id === id ? { ...t, status: DECISIONS[decision] } : t)) };
-      months.push({ month, roster, names: input, before: { input, days: roster.days }, after: { input: using, days: repair(using, roster.days) } });
+      months.push({ month, roster, names: input, before: { input, days: roster.days }, after: { input: using, days: repair(using, roster.days, entry) } });
     }
   }
   return { entry, from, months };

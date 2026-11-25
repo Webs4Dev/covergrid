@@ -141,6 +141,32 @@ describe("suggestFixes", () => {
   });
 });
 
+describe("a change only touches its own dates", () => {
+  // Someone earlier marked Farah as working during approved leave on the 17th.
+  const stale = days.map((d) => (d.employeeId === idOf("Farah Khan") && d.date === "2026-12-17" ? { ...d, status: "working" as const, locked: true } : d));
+
+  it("leave review leaves unrelated out-of-date days alone", () => {
+    const entry = leave("Priya Nair", "2026-12-14");
+    const using = withLeave(entry);
+    const fixed = repair(using, stale, entry);
+    expect(new Set(changedDays(stale, fixed).map((c) => c.after!.date))).toEqual(new Set(["2026-12-14"]));
+    const plan = describeChange({ input, days: stale }, { input: using, days: fixed });
+    expect(plan.resolved).toEqual([]);
+  });
+
+  it("moving a weekly off does not repair other days as well", () => {
+    const saturday = "2026-12-12";
+    const using = withLeave(leave("Nisha Pillai", saturday), leave("Vikram Sethi", saturday));
+    const swap = suggestFixes(using, repair(using, stale, { startDate: saturday, endDate: saturday }), service("Zestbowl", "CS"), saturday)
+      .find((f) => f.kind === "swap")!;
+    expect(changedDays(stale, swap.days).map((c) => c.after!.date)).not.toContain("2026-12-17");
+  });
+
+  it("still repairs the whole month when asked", () => {
+    expect(changedDays(stale, repair(input, stale)).map((c) => c.after!.date)).toContain("2026-12-17");
+  });
+});
+
 describe("describeChange and other dates", () => {
   it("explains Priya's leave before it is approved", () => {
     const using = withLeave(leave("Priya Nair", "2026-12-14"));

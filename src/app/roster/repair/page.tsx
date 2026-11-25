@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Icon } from "@/components/icon";
 import { connection } from "next/server";
 import { saveRepair } from "@/app/roster/actions";
 import { ChangeForm } from "@/components/change-form";
@@ -19,10 +20,10 @@ export default async function RepairPage({ searchParams }: PageProps<"/roster/re
   const plan = describeChange(change.before, change.after);
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="mx-auto max-w-4xl space-y-4 p-4">
       <div>
-        <Link href={`/roster?month=${month}`} className="text-sm text-accent underline">Back to the roster</Link>
-        <h1 className="mt-1 text-2xl font-semibold">Repair {monthLabel(month)}</h1>
+        <Link href={`/roster?month=${month}`} className="btn-sm"><Icon name="back" />Back to the roster</Link>
+        <h1 className="mt-3 text-2xl font-semibold">Repair {monthLabel(month)}</h1>
         <p className="text-sm text-muted">
           Brings the roster in line with the current data and fills gaps with approved backups. Weekly offs stay where they are, and days without a problem are not touched.
         </p>

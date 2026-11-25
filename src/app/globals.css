@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-paper: #f5f7fa;
+  --color-paper: #f7f7fb;
   --color-surface: #ffffff;
-  --color-ink: #1b2a47;
-  --color-muted: #5a6681;
-  --color-line: #dbe1ea;
-  --color-accent: #0f7c74;
-  --color-accent-soft: #e0f2f0;
+  --color-ink: #1c1a33;
+  --color-muted: #5a5773;
+  --color-line: #e3e1ee;
+  --color-accent: #5b3cc4;
+  --color-accent-bright: #a993ff;
+  --color-accent-soft: #f0edfb;
   --color-danger: #b3261e;
   --color-danger-soft: #fdecea;
-  --color-warn: #8a5a00;
-  --color-warn-soft: #fff3d6;
-  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+  --color-warn: #4b4770;
+  --color-warn-soft: #eeecf5;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
@@ -38,6 +39,20 @@ body {
   }
   .btn-danger {
     @apply border-danger bg-danger text-white hover:border-ink;
+  }
+  /* Small buttons: filled and bordered, so they never read as plain text. */
+  .btn-sm {
+    @apply inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-accent/50 bg-accent-soft px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-accent shadow-sm hover:border-accent hover:bg-accent hover:text-white;
+  }
+  .btn-sm-primary {
+    @apply border-accent bg-accent text-white hover:border-ink hover:bg-ink;
+  }
+  .btn-sm-danger {
+    @apply border-danger/60 bg-danger-soft text-danger hover:border-danger hover:bg-danger;
+  }
+  /* Labels are information, not buttons: a coloured dot and text, no box. */
+  .tag {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap before:size-2 before:rounded-full before:bg-current;
   }
   .control {
     @apply w-full rounded-md border border-line bg-surface px-2.5 py-1.5 text-base sm:text-sm;
