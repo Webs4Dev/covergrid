@@ -56,9 +56,9 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
   const monthStart = calendar[0].date;
   const monthEnd = calendar[calendar.length - 1].date;
   const KIND = {
-    leave: { label: "Leave", style: "bg-accent text-white" },
-    comp_off: { label: "Comp-off", style: "bg-accent-soft text-accent" },
-    unavailable: { label: "Unavailable", style: "bg-ink text-white" },
+    leave: { label: "Leave", style: "text-accent" },
+    comp_off: { label: "Comp-off", style: "text-muted" },
+    unavailable: { label: "Unavailable", style: "text-ink" },
   } as const;
   const away = input.timeOff
     .filter((t) => t.status === "approved" && t.startDate <= monthEnd && t.endDate >= monthStart)
@@ -138,7 +138,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
                   <p className={`text-xs font-semibold ${TASK_STYLE[task.kind].text}`}>{TASK_STYLE[task.kind].tag}</p>
                   <p className="text-sm font-semibold">{task.title}</p>
                   <p className="text-xs text-muted">{task.detail}</p>
-                  {task.reason && <p className="reason mt-1 text-xs">{task.reason}</p>}
+                  {task.reason && <p className="text-xs text-muted">Reason: <span className="font-semibold text-ink">{task.reason}</span></p>}
                 </div>
                 <Link href={task.href} className="btn shrink-0">{task.action}</Link>
               </li>
@@ -152,10 +152,12 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
               <li key={a.id} className="flex items-center justify-between gap-3 rounded-lg bg-paper px-2.5 py-1.5">
                 <div className="min-w-0">
                   <p className="font-semibold">{a.name}</p>
-                  {a.reason && <p className="truncate text-xs text-muted" title={a.reason}>{a.reason}</p>}
+                  {a.reason && (
+                    <p className="truncate text-xs text-muted" title={a.reason}>Reason: <span className="font-medium text-ink">{a.reason}</span></p>
+                  )}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
-                  <span className={`chip ${a.kind.style}`}>{a.kind.label}</span>
+                  <span className={`tag ${a.kind.style}`}>{a.kind.label}</span>
                   <span className="text-xs font-semibold">{a.when}</span>
                 </div>
               </li>

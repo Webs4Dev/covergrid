@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Icon } from "@/components/icon";
 import { connection } from "next/server";
 import { saveEdit } from "@/app/roster/actions";
 import { ChangeForm } from "@/components/change-form";
@@ -40,7 +41,7 @@ export default async function EditDayPage({ searchParams }: PageProps<"/roster/e
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-4">
       <div>
-        <Link href={`/roster?month=${month}&view=employee&id=${employeeId}`} className="btn-sm">Back to {employee.name}</Link>
+        <Link href={`/roster?month=${month}&view=employee&id=${employeeId}`} className="btn-sm"><Icon name="back" />Back to {employee.name}</Link>
         <h1 className="mt-3 text-2xl font-semibold">{employee.name}, {showDate(date)}</h1>
         <p className="text-sm text-muted">Now: {STATUS[current.status].label}{current.locked ? ", edited by hand" : ""}. For leave, add it under Time off.</p>
       </div>

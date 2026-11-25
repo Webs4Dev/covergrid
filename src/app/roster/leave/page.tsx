@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Icon } from "@/components/icon";
 import { connection } from "next/server";
 import { saveDecision } from "@/app/roster/actions";
 import { ChangeForm } from "@/components/change-form";
@@ -34,20 +35,22 @@ export default async function LeavePage({ searchParams }: PageProps<"/roster/lea
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-4">
       <div>
-        <Link href="/manage/time-off" className="btn-sm">Back to time off</Link>
+        <Link href="/manage/time-off" className="btn-sm"><Icon name="back" />Back to time off</Link>
         <h1 className="mt-3 text-2xl font-semibold">{person?.name}: {kind.toLowerCase()}, {range}</h1>
-        <div className="panel mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 p-3">
-          <p className="text-sm">
-            <span className="mr-2 text-muted">Reason for {kind.toLowerCase()}</span>
-            <span className="reason text-base">{entry.reason || "No reason given"}</span>
-          </p>
-          <p className="text-sm">
-            <span className="mr-2 text-muted">Status</span>
-            <span className={`chip ${entry.status === "requested" ? "border border-accent text-accent" : "bg-accent-soft text-ink"}`}>
-              {entry.status[0].toUpperCase() + entry.status.slice(1)}
-            </span>
-          </p>
-        </div>
+        <dl className="panel mt-3 flex flex-wrap items-start gap-x-10 gap-y-3 p-4">
+          <div>
+            <dt className="text-xs text-muted">Reason for {kind.toLowerCase()}</dt>
+            <dd className="mt-0.5 text-base font-semibold">{entry.reason || "No reason given"}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted">Status</dt>
+            <dd className="mt-1">
+              <span className={`tag ${entry.status === "requested" ? "text-accent" : "text-ink"}`}>
+                {entry.status[0].toUpperCase() + entry.status.slice(1)}
+              </span>
+            </dd>
+          </div>
+        </dl>
       </div>
       {done && <p role="status" className="rounded-md bg-accent-soft px-3 py-2 text-sm">Saved. This entry is now {entry.status}.</p>}
 

@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { generate, publish, unpublish } from "@/app/actions";
 import { ConfirmButton } from "@/components/confirm-button";
 import { GenerateButton } from "@/components/generate-button";
+import { Icon } from "@/components/icon";
 import { ProblemList } from "@/components/problem-list";
 import { PublishForm } from "@/components/publish-form";
 import { DayDetail, EmployeeCalendar } from "@/components/roster-detail";
@@ -173,7 +174,7 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
             <span className="text-muted">{issues.length - mustFix} preference notes.</span>
           </p>
           {roster.overrideReason && (
-            <p className="mt-1 text-muted">Published anyway because: <span className="reason">{roster.overrideReason}</span></p>
+            <p className="mt-1 text-muted">Published anyway because: <span className="font-semibold text-ink">{roster.overrideReason}</span></p>
           )}
           {roster.status === "published" && mustFix > 0 && !roster.overrideReason && (
             <p role="alert" className="mt-1 font-medium text-danger">Something changed after publishing. Check the problems.</p>
@@ -208,7 +209,7 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
       <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
         <span className="text-muted">Download CSV:</span>
         {Object.entries(EXPORTS).map(([type, label]) => (
-          <a key={type} href={`/roster/export?month=${month}&type=${type}`} download className="btn-sm">{label}</a>
+          <a key={type} href={`/roster/export?month=${month}&type=${type}`} download className="btn-sm"><Icon name="download" />{label}</a>
         ))}
       </p>
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Icon } from "@/components/icon";
 import { connection } from "next/server";
 import { saveFix } from "@/app/roster/actions";
 import { ChangeForm } from "@/components/change-form";
@@ -25,7 +26,7 @@ export default async function FixPage({ searchParams }: PageProps<"/roster/fix">
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-4">
       <div>
-        <Link href={`/roster?month=${month}&view=problems`} className="btn-sm">Back to problems</Link>
+        <Link href={`/roster?month=${month}&view=problems`} className="btn-sm"><Icon name="back" />Back to problems</Link>
         <h1 className="mt-3 text-2xl font-semibold">Find a fix</h1>
         <p className="text-sm text-muted">Every option was checked: none breaks another must-fix rule. Each fills one place.</p>
       </div>
