@@ -31,7 +31,10 @@ works a public holiday one comp-off; returning to draft removes those again.
 
 **Changes after a roster exists:** select a cell to edit a day, or Review a request under
 Time off. Both show the effect, new gaps and checked fixes before anything is saved. When
-other data changes, the roster offers a repair that touches only the affected days. There is **no login**: this is
+other data changes, the roster offers a repair that touches only the affected days.
+
+**Download CSV** on a roster gives a month grid, a list of who does what, or coverage by
+day. CSV files open in Excel and Google Sheets. There is **no login**: this is
 a demo with fictional data, so anyone can edit it, and **Reset sample data** on the Overview
 page restores it. Do not enter real personal data.
 

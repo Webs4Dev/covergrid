@@ -10,6 +10,7 @@ import { CoverageGrid, Legend, PeopleGrid } from "@/components/roster-grid";
 import { loadChanges, loadInput, loadRoster } from "@/db/roster";
 import { changedDays, repair } from "@/engine/change";
 import { canPublish, checkRoster } from "@/engine/check";
+import { EXPORTS } from "@/lib/export";
 import type { Employee } from "@/engine/types";
 import { isMonth, monthChoices, monthLabel, nextMonth } from "@/lib/months";
 import { createView } from "@/lib/roster-view";
@@ -202,6 +203,13 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
           <Link href={`/roster/repair?month=${month}`} className="btn">Review the repair</Link>
         </p>
       )}
+
+      <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        <span className="text-muted">Download CSV:</span>
+        {Object.entries(EXPORTS).map(([type, label]) => (
+          <a key={type} href={`/roster/export?month=${month}&type=${type}`} download className="text-accent underline">{label}</a>
+        ))}
+      </p>
 
       <nav aria-label="Roster views" className="mt-4 flex flex-wrap gap-1">
         {Object.entries(VIEWS).map(([key, label]) => (
