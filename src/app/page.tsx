@@ -1,3 +1,4 @@
+import Form from "next/form";
 import Link from "next/link";
 import { asc, eq } from "drizzle-orm";
 import { connection } from "next/server";
@@ -105,12 +106,12 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <form action="/" className="flex gap-2">
+          <Form action="/" className="flex gap-2">
             <select name="month" aria-label="Month" defaultValue={month} key={month} className="control w-auto">
               {[...new Set([...monthChoices(), month])].sort().map((m) => <option key={m} value={m}>{monthLabel(m)}</option>)}
             </select>
             <button className="btn">Show</button>
-          </form>
+          </Form>
           <Link href={`/roster?month=${month}`} className="btn btn-primary">{roster ? "Open roster" : "Generate roster"}</Link>
         </div>
       </header>

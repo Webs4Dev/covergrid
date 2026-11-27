@@ -1,3 +1,4 @@
+import Form from "next/form";
 import Link from "next/link";
 import { connection } from "next/server";
 import { generate, publish, unpublish } from "@/app/actions";
@@ -40,13 +41,13 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
     <>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-xl font-bold">Roster</h1>
-        <form action="/roster" className="flex flex-wrap gap-2">
+        <Form action="/roster" className="flex flex-wrap gap-2">
           <input type="hidden" name="view" value={view === "day" ? "company" : view} />
           <select name="month" aria-label="Month" defaultValue={month} key={month} className="control w-auto">
             {months.map((m) => <option key={m} value={m}>{monthLabel(m)}</option>)}
           </select>
           <button className="btn">Show month</button>
-        </form>
+        </Form>
       </div>
     </>
   );
@@ -225,14 +226,14 @@ export default async function RosterPage({ searchParams }: PageProps<"/roster">)
       </nav>
 
       {list.length > 0 && chosen && (
-        <form action="/roster" className="mt-2 flex flex-wrap gap-2">
+        <Form action="/roster" className="mt-2 flex flex-wrap gap-2">
           <input type="hidden" name="month" value={month} />
           <input type="hidden" name="view" value={view} />
           <select name="id" aria-label={VIEWS[view as keyof typeof VIEWS]} defaultValue={chosen.id} key={`${view}-${chosen.id}`} className="control w-auto">
             {list.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
           </select>
           <button className="btn">Show</button>
-        </form>
+        </Form>
       )}
 
       <div className="mt-3 flex flex-col gap-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">

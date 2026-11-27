@@ -43,7 +43,7 @@ body {
     @apply rounded-[10px] border border-line bg-surface;
   }
   .btn {
-    @apply inline-flex cursor-pointer items-center justify-center rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink hover:border-muted disabled:cursor-wait disabled:opacity-60;
+    @apply inline-flex cursor-pointer items-center justify-center rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium whitespace-nowrap text-ink hover:border-muted active:translate-y-px active:brightness-90 disabled:cursor-wait disabled:opacity-60;
   }
   .btn-primary {
     @apply border-accent bg-accent text-white hover:border-ink;
@@ -53,7 +53,7 @@ body {
   }
   /* Small buttons: filled and bordered, so they never read as plain text. */
   .btn-sm {
-    @apply inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-accent/50 bg-accent-soft px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-accent shadow-sm hover:border-accent hover:bg-accent hover:text-white;
+    @apply inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-accent/50 bg-accent-soft px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-accent shadow-sm active:translate-y-px hover:border-accent hover:bg-accent hover:text-white;
   }
   .btn-sm-primary {
     @apply border-accent bg-accent text-white hover:border-ink hover:bg-ink;
