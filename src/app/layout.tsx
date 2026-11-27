@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
+import { Suspense } from "react";
+import { BusyBar } from "@/components/busy-bar";
 import { Nav } from "@/components/nav";
 import "./globals.css";
 
@@ -15,6 +17,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${manrope.variable} antialiased`}>
       {/* On a laptop the app fills the window; long content scrolls inside it. */}
       <body className="flex min-h-dvh flex-col md:h-dvh md:flex-row md:overflow-hidden">
+        <Suspense>
+          <BusyBar />
+        </Suspense>
         <aside className="flex shrink-0 flex-col bg-ink text-white md:w-52">
           <p className="flex items-center gap-2 px-4 pt-4 pb-1 text-lg font-bold">
             {/* A tiny roster: the one cell in the accent colour is a covered day. */}

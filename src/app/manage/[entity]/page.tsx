@@ -1,3 +1,4 @@
+import Form from "next/form";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
@@ -90,10 +91,10 @@ export default async function ManagePage({ params, searchParams }: PageProps<"/m
       </details>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <form action={base} className="flex gap-2">
+        <Form action={base} className="flex gap-2">
           <input type="search" name="q" defaultValue={search} placeholder="Search" aria-label={`Search ${definition.title}`} className="control" />
           <button className="btn">Search</button>
-        </form>
+        </Form>
         <p className="text-sm text-muted">
           {search ? `${table.length} of ${rows.length} shown` : `${rows.length} in total`}
         </p>
