@@ -80,6 +80,13 @@ async function relatedErrors(entity: EntityName, values: Values, rowKey: string 
   return {};
 }
 
+// The demo is open to anyone, so each kind of data has a ceiling that keeps roster
+// generation quick. They are far above the sample company.
+const LIMITS: Record<EntityName, number> = {
+  employees: 150, pods: 30, brands: 100, services: 200, assignments: 1000, processes: 30, calendars: 30,
+  shifts: 30, "staffing-rules": 500, holidays: 200, "time-off": 1000, "comp-offs": 1000,
+};
+
 export type SaveResult = { ok: true } | { ok: false; message: string; errors?: Errors };
 
 export async function saveRow(entity: EntityName, rowKey: string | null, values: Values): Promise<SaveResult> {
@@ -88,6 +95,9 @@ export async function saveRow(entity: EntityName, rowKey: string | null, values:
   const { table } = tables[entity];
   try {
     if (rowKey === null) {
+      if ((await getDb().$count(table)) >= LIMITS[entity]) {
+        return { ok: false, message: `This demo allows up to ${LIMITS[entity]} entries here. Delete one first.` };
+      }
       await getDb().insert(table).values(values);
     } else {
       const condition = where(entity, rowKey);

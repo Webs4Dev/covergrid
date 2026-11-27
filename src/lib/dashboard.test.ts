@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { repair } from "../engine/change";
 import { checkRoster } from "../engine/check";
 import { generateRoster } from "../engine/generate";
 import { sampleInput } from "../seed/roster-input";
@@ -42,6 +43,18 @@ describe("buildTasks", () => {
     expect(tasks.map((t) => t.kind)).toEqual(["problem", "leave", "step"]);
     expect(tasks[0].href).toContain("/roster/fix?month=2026-12");
     expect(tasks[1].href).toBe("/roster/leave?id=7");
+  });
+
+  it("leaves days a repair will fill out of the list, instead of one task per day", () => {
+    const added = { ...input, employees: [...input.employees, { ...input.employees[0], id: 500, name: "New Person" }] };
+    const issues = checkRoster(added, days);
+    expect(issues.filter((i) => i.code === "missing_day")).toHaveLength(31);
+    const afterRepair = checkRoster(added, repair(added, days));
+    const tasks = buildTasks({ ...base, issues, afterRepair, outdated: 31, roster: { status: "draft" } });
+    expect(tasks.filter((t) => t.title.includes("New Person"))).toEqual([]);
+    expect(tasks[0]).toMatchObject({ key: "repair" });
+    // The impossible Christmas gap still needs a decision, so it stays listed.
+    expect(tasks.some((t) => t.title.startsWith("Trailhoof CS"))).toBe(true);
   });
 
   it("has no publish step once published", () => {

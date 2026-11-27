@@ -50,9 +50,11 @@ export default async function Dashboard({ searchParams }: PageProps<"/">) {
   ]);
 
   const issues = roster ? checkRoster(input, roster.days) : [];
-  const outdated = roster ? changedDays(roster.days, repair(input, roster.days)).length : 0;
+  const repaired = roster ? repair(input, roster.days) : [];
+  const outdated = roster ? changedDays(roster.days, repaired).length : 0;
+  const afterRepair = outdated > 0 ? checkRoster(input, repaired) : undefined;
   const { calendar, lead, totals, shortServices } = summarise(input, roster?.days ?? null);
-  const tasks = buildTasks({ month, roster, issues, outdated, requests, format });
+  const tasks = buildTasks({ month, roster, issues, outdated, afterRepair, requests, format });
   const monthStart = calendar[0].date;
   const monthEnd = calendar[calendar.length - 1].date;
   const KIND = {
